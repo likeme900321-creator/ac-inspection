@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)file:///C:/Users/PC/Downloads/ac-inspection-v3_7.html -->
+<!-- saved from url=(0053)file:///C:/Users/PC/Downloads/ac-inspection-v3_8.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>자재 검수</title>
-<script src="./as-inspection-v3_7_files/pdf.min.js.다운로드"></script>
+<script src="./ac-inspection-v3_8_files/pdf.min.js.다운로드"></script>
 <style>
 /* 터치 딜레이 완전 제거 */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -561,7 +561,7 @@ body{touch-action:manipulation;font-family:-apple-system,'Pretendard','Apple SD 
 // ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
-const CLAUDE_KEY = '';
+let CLAUDE_KEY = localStorage.getItem('claude_api_key') || '';
 const SB_URL = 'https://yfposuvjbdwzpbgrznbh.supabase.co';
 const SB_KEY = 'sb_publishable_22owTdzkaJF_7NsMEg-SoQ_63tMGDY7';
 
@@ -1336,6 +1336,14 @@ async function captureAndRecognize(){
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0);
   const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+  // API 키 없으면 입력 요청
+  if(!CLAUDE_KEY){
+    const key = prompt('Claude API 키를 입력해주세요:\n(console.anthropic.com 에서 발급)');
+    if(!key){ showToast('API 키가 필요합니다'); return; }
+    CLAUDE_KEY = key.trim();
+    localStorage.setItem('claude_api_key', CLAUDE_KEY);
+  }
 
   loading.classList.add('on');
   document.getElementById('scan-shutter-btn').disabled = true;
