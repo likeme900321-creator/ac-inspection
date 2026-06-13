@@ -744,30 +744,30 @@ async function sb(method, path, body){
 
 // Upsert: conflict 시 update (신규/업데이트 한번에)
 async function sbUpsert(table, rows, onConflict){
-  const url = SB_URL + '/rest/v1/' + table;
-  const headers = {
-    'apikey': SB_KEY,
-    'Authorization': 'Bearer ' + SB_KEY,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Prefer': `return=representation,resolution=merge-duplicates`
-  };
-  let res;
-  try{
-    res = await fetch(url + `?on_conflict=${onConflict}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(rows)
-    });
-  } catch(netErr){
-    throw new Error('네트워크 오류: ' + netErr.message);
-  }
-  if(!res.ok){
-    const err = await res.text();
-    let msg=''; try{ msg=JSON.parse(err).message||err; }catch(e){ msg=err; }
-    throw new Error(`Supabase upsert 오류 [${res.status}]: ${msg}`);
-  }
-  const txt = await res.text();
+// const url = SB_URL + '/rest/v1/' + table;
+//  const headers = {
+//    'apikey': SB_KEY,
+//    'Authorization': 'Bearer ' + SB_KEY,
+//    'Content-Type': 'application/json',
+//    'Accept': 'application/json',
+//    'Prefer': `return=representation,resolution=merge-duplicates`
+//  };
+//  let res;
+//  try{
+//    res = await fetch(url + `?on_conflict=${onConflict}`, {
+//      method: 'POST',
+//      headers,
+//      body: JSON.stringify(rows)
+//    });
+//  } catch(netErr){
+//    throw new Error('네트워크 오류: ' + netErr.message);
+//  }
+//  if(!res.ok){
+//    const err = await res.text();
+//    let msg=''; try{ msg=JSON.parse(err).message||err; }catch(e){ msg=err; }
+//    throw new Error(`Supabase upsert 오류 [${res.status}]: ${msg}`);
+//  }
+//  const txt = await res.text();
   return txt ? JSON.parse(txt) : null;
 }
 // ══════════════════════════════════════════
