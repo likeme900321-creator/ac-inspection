@@ -1390,8 +1390,7 @@ async function captureAndRecognize(){
     const txt = data.content?.[0]?.text || '{}';
     let result = {};
     try{ result = JSON.parse(txt.replace(/```json?|```/g,'')); }
-    catch(e){ result = {found: txt.trim().split('
-')[0], matched:null, confidence:'low'}; }
+    catch(e){ result = {found: txt.trim().split('')[0], matched:null, confidence:'low'}; }
 
     lastRecognizedModel = result.found || '';
     showScanResult(result);
