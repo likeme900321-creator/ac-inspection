@@ -770,7 +770,7 @@ async function sbUpsert(table, rows, onConflict){
 //    throw new Error(`Supabase upsert 오류 [${res.status}]: ${msg}`);
 //  }
 //  const txt = await res.text();
-return await sb('POST', table, data);
+return await sb('POST', table, rows);
 }
 // ══════════════════════════════════════════
 pdfjsLib.GlobalWorkerOptions.workerSrc =
