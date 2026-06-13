@@ -94,35 +94,131 @@ body{touch-action:manipulation;font-family:-apple-system,'Pretendard','Apple SD 
 .rec-cnt{font-size:12px;font-weight:700;color:var(--gray-600);white-space:nowrap}
 
 /* ── PDF 업로드 ── */
-.upload-zone{margin:16px 18px;border:2px dashed var(--gray-200);border-radius:var(--radius);padding:36px 20px;text-align:center;cursor:pointer;background:var(--white)}
-.upload-zone.drag{border-color:var(--blue);background:var(--blue-lt)}
-.upload-zone-ico{font-size:40px;margin-bottom:10px}
-.upload-zone h2{font-size:15px;font-weight:700;margin-bottom:5px}
-.upload-zone p{font-size:12px;color:var(--gray-400)}
-#pdf-input{display:none}
-.pdf-prev{margin:0 18px 14px;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:14px;display:none;align-items:center;gap:12px}
-.pdf-prev.on{display:flex}
-.pdf-ico{width:44px;height:44px;border-radius:10px;background:var(--red-lt);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.pdf-fn{font-size:13px;font-weight:700;word-break:break-all}
-.pdf-fs{font-size:11px;color:var(--gray-400);margin-top:2px}
-.pdf-rm{margin-left:auto;border:none;background:none;color:var(--gray-400);cursor:pointer;font-size:18px;padding:4px}
-.parse-prog{margin:0 18px 14px;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px;display:none}
-.parse-prog.on{display:block}
-.prog-wrap{background:var(--gray-100);border-radius:4px;height:6px;margin-top:8px;overflow:hidden}
-.prog-bar{background:var(--blue);height:100%;border-radius:4px;width:0%;transition:width .3s}
-.prog-txt{font-size:12px;color:var(--gray-600);margin-top:6px}
-.tech-list{padding:0 18px}
-.tech-card{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;overflow:hidden}
-.tech-card:active{background:var(--gray-50)}
-.tech-card-head{display:flex;align-items:center;gap:12px;padding:14px 16px}
-.tc-ava{width:40px;height:40px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--blue-dk);flex-shrink:0}
-.tc-name{font-size:14px;font-weight:700}
-.tc-meta{font-size:11px;color:var(--gray-400);margin-top:2px}
-.tc-badge{margin-left:auto;text-align:right}
-.tc-total{font-size:18px;font-weight:800;color:var(--blue)}
-.tc-done{font-size:11px;color:var(--gray-400)}
-.tc-prog{height:3px;background:var(--gray-100);margin:0 16px 14px}
-.tc-prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+/* ── ⭐️ 핵심: 페이지 내에서 협력업체 구역의 [모델명, 수량, 제품위치, 원주문구분] 추출 함수 ── */
+function parsePageTextToJob(lines) {
+  let tech_name = "";
+  let job_date = "";
+  let models = [];
+  
+  // 기본적으로는 협력업체 구간으로 시작한다고 가정 (스위치 ON)
+  let isCompanySection = true; 
+
+  for (let i = 0; i < lines.length; i++) {
+    // 따옴표나 불필요한 기호 찌꺼기 청소
+    const line = lines[i].replace(/["']/g, '').trim();
+    if (!line) continue;
+
+    // 1. 기사명 및 설치일(날짜) 공통 추출
+    if (line.includes("설치기사") || line.includes("기사명")) {
+      if (lines[i+1]) tech_name = lines[i+1].replace(/["'\n]/g, '').trim();
+    }
+    if (line.includes("설치일")) {
+      if (lines[i+1]) {
+        const dateMatch = lines[i+1].match(/\d{8}/);
+        if (dateMatch) job_date = dateMatch[0];
+      }
+    }
+
+    // 2. 🚨 [구간 제어 플래그] 
+    // 한 페이지 내에서 "설치기사)" 대제목 영역을 만나면 스위치를 끕니다.
+    if (line.includes("설치제품  설치  의뢰서(설치기") || line.includes("의뢰서(설치기사)")) {
+      isCompanySection = false;
+      console.log(`➔ [구역 감지] 설치기사용 구역이 시작되어 자재 수집을 일시 중단합니다.`);
+      continue;
+    }
+    
+    // "협력업체)" 대제목 영역을 만나면 다시 스위치를 켭니다.
+    if (line.includes("설치제품  설치  의뢰서(협력업체)") || line.includes("의뢰서(협력업체)")) {
+      isCompanySection = true;
+      console.log(`➔ [구역 감지] 협력업체용 구역이 시작되어 자재 수집을 재개합니다.`);
+      continue;
+    }
+
+    // 3. 🎯 중요 정보 [모델명, 수량, 제품위치, 원주문구분] 데이터 추출
+    // PDF의 데이터 줄에서 "배차확정" 또는 "일반" 이라는 핵심 키워드가 들어있는 행을 포착합니다.
+    if (line.includes("배차확정") || line.includes("일반")) {
+      
+      // 💡 [핵심 필터] 오직 협력업체 구역(isCompanySection === true)일 때만 배열에 담습니다.
+      if (isCompanySection) {
+        
+        /* [PDF 데이터 매핑 팁]
+           텍스트가 쪼개져서 들어올 때, "배차확정" 주위로 앞뒤 줄에 데이터가 배치됩니다.
+           예: lines[i-2] = 주문서번호, lines[i-1] = 모델명, line = 배차확정/일반 및 수량/제품위치 등
+           아래 방식은 PDF 텍스트 결합 형태에 맞추어 유연하게 데이터를 파싱합니다.
+        */
+        
+        let orderId = "";
+        let modelName = "";
+        let qty = 1;
+        let location = "기본위치";
+        let orderType = "일반";
+
+        // 쉼표(,) 등으로 한 줄에 묶여서 들어오는 형태인 경우 쪼개서 매핑
+        if (line.includes(",")) {
+          const parts = line.split(",").map(p => p.trim());
+          // 순서 예시: [주문서번호, 모델명, 배차확정, 수량, 제품위치, 원주문구분]
+          orderId = parts[0] || "";
+          modelName = parts[1] || "";
+          qty = parseInt(parts[3]) || 1;
+          location = parts[4] || "지정 안 됨";
+          orderType = parts[6] || "일반";
+        } else {
+          // 줄바꿈으로 쪼개져서 순서대로 들어오는 경우 (주변 인덱스 참조 탐색)
+          modelName = line.replace("배차확정", "").replace("일반", "").trim();
+          orderId = lines[i-1] ? lines[i-1].trim() : "";
+          
+          // 주변 행에서 수량(숫자)이나 특이 키워드가 있으면 가져오기
+          if (lines[i+1] && !isNaN(lines[i+1].trim())) {
+            qty = parseInt(lines[i+1].trim()) || 1;
+          }
+        }
+
+        // 수집 대상 중요 항목이 존재할 때만 저장 배열(models)에 삽입
+        if (modelName) {
+          models.push({
+            order_id: orderId,       // 주문서번호
+            name: modelName,         // ⭐️ 모델명
+            qty: qty,                // ⭐️ 수량
+            location: location,       // ⭐️ 제품위치
+            order_type: orderType,   // ⭐️ 원주문구분
+            checked: false           // 앱 화면 체크박스용 상태값
+          });
+          console.log(`✅ [협력업체 자재 수집] 모델: ${modelName} | 수량: ${qty} | 위치: ${location} | 구분: ${orderType}`);
+        }
+        
+      } else {
+        // 스위치가 꺼진 설치기사 구역의 데이터는 로그만 남기고 무시 처리
+        console.log(`❌ [설치기사 자재 패스] ${line}`);
+      }
+    }
+  }
+
+  // 날짜 예외 방어 코드 (날짜를 못 읽었을 경우 오늘 날짜 적용)
+  if(!job_date) job_date = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  if(!tech_name) tech_name = "미지정 기사";
+
+  return { tech_name, job_date, models };
+}
+  // handlePdf 함수 내에서 Supabase에 데이터를 밀어 넣는 루프 구간 수정
+if (jobRes && jobRes[0] && job.models.length > 0) {
+  const jobId = jobRes[0].id;
+  
+  // 중요 데이터 필드를 매핑하여 insert용 객체 배열 생성
+  const modelsToInsert = job.models.map(m => ({
+    job_id: jobId,
+    name: m.name,          // 모델명
+    qty: m.qty,            // 수량
+    order_id: m.order_id,  // 주문번호
+    // 💡 아래 두 컬럼이 Supabase 테이블(models)에 생성되어 있어야 정상 저장됩니다!
+    location: m.location,    // 제품위치 
+    order_type: m.order_type,// 원주문구분
+    checked: false
+  }));
+  
+  // Supabase 전송
+  await sb('POST', 'models', modelsToInsert);
+}
+  
 
 /* ── 검수 상세 ── */
 .detail-hero{background:var(--white);padding:18px;border-bottom:1px solid var(--gray-100);margin-bottom:10px}
