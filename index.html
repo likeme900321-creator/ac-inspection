@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)file:///C:/Users/PC/Downloads/ac-inspection-v3_5.html -->
+<!-- saved from url=(0053)file:///C:/Users/PC/Downloads/ac-inspection-v3_6.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>자재 검수</title>
-<script src="./ac_inspection-v5_files/pdf.min.js.다운로드"></script>
+<script src="./as_inspection-v3_6_files/pdf.min.js.다운로드"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+/* 터치 딜레이 완전 제거 */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html{touch-action:manipulation}
+/* 터치 타겟 최소 44px 보장 */
+button,a,[onclick]{min-height:44px;cursor:pointer}
 :root{
   --blue:#1A6ED8;--blue-lt:#E8F1FC;--blue-dk:#0C3E8A;
   --green:#17955E;--green-lt:#E2F5EE;--green-dk:#0A5C38;
@@ -17,7 +24,7 @@
   --gray-400:#8A8880;--gray-600:#5C5B57;--gray-900:#1C1C1A;
   --white:#FFFFFF;--radius:14px;--radius-sm:8px;
 }
-body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;max-width:480px;margin:0 auto}
+body{touch-action:manipulation;font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;max-width:480px;margin:0 auto}
 
 /* ── 공통 ── */
 .hdr{background:var(--white);border-bottom:1px solid var(--gray-100);padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
@@ -45,7 +52,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 .mode-logo{font-size:36px;margin-bottom:8px}
 .mode-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
 .mode-sub{font-size:13px;color:var(--gray-400);margin-bottom:24px}
-.mode-card{width:100%;background:var(--white);border:1.5px solid var(--gray-100);border-radius:var(--radius);padding:20px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:transform .1s}
+.mode-card{width:100%;background:var(--white);border:1.5px solid var(--gray-100);border-radius:var(--radius);padding:20px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:transform .1s;-webkit-user-select:none;user-select:none}
 .mode-card:active{transform:scale(.97)}
 .mode-card-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
 .mode-card-ico.blue{background:var(--blue-lt)}
@@ -62,7 +69,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 .search-box input{width:100%;height:46px;padding:0 14px 0 40px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:15px;background:var(--gray-50)}
 .search-box input:focus{outline:none;border-color:var(--blue);background:var(--white)}
 .search-drop{background:var(--white);border:1.5px solid var(--gray-200);border-top:none;border-radius:0 0 var(--radius) var(--radius);display:none;overflow:hidden;position:absolute;left:0;right:0;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.search-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--gray-100)}
+.search-row{-webkit-user-select:none;user-select:none;display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--gray-100)}
 .search-row:last-child{border-bottom:none}
 .search-row:active{background:var(--gray-50)}
 .ava{width:36px;height:36px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue-dk);flex-shrink:0}
@@ -70,14 +77,14 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 .ava.amber{background:var(--amber-lt);color:var(--amber)}
 .qk-section{padding:16px 18px 0}
 .qk-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.qk-card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px 14px;cursor:pointer;transition:transform .1s}
+.qk-card{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px 14px;cursor:pointer;transition:transform .1s}
 .qk-card:active{transform:scale(.97);background:var(--gray-50)}
 .qk-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px}
 .qk-ico.b{background:var(--blue-lt)}.qk-ico.g{background:var(--green-lt)}.qk-ico.p{background:var(--purple-lt)}
 .qk-label{font-size:13px;font-weight:700}
 .qk-desc{font-size:11px;color:var(--gray-400);margin-top:2px}
 .recent-sec{padding:16px 18px 0}
-.rec-item{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:13px 14px;margin-bottom:7px;cursor:pointer;display:flex;align-items:center;gap:11px}
+.rec-item{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:13px 14px;margin-bottom:7px;cursor:pointer;display:flex;align-items:center;gap:11px}
 .rec-item:active{background:var(--gray-50)}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .dot-g{background:var(--green)}.dot-a{background:var(--amber)}.dot-r{background:var(--red)}
@@ -105,7 +112,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 .prog-bar{background:var(--blue);height:100%;border-radius:4px;width:0%;transition:width .3s}
 .prog-txt{font-size:12px;color:var(--gray-600);margin-top:6px}
 .tech-list{padding:0 18px}
-.tech-card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;overflow:hidden}
+.tech-card{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;overflow:hidden}
 .tech-card:active{background:var(--gray-50)}
 .tech-card-head{display:flex;align-items:center;gap:12px;padding:14px 16px}
 .tc-ava{width:40px;height:40px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--blue-dk);flex-shrink:0}
@@ -130,7 +137,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 .stat-n.g{color:var(--green)}.stat-n.r{color:var(--red)}.stat-n.b{color:var(--blue)}
 .stat-l{font-size:10px;color:var(--gray-400);margin-top:1px}
 .model-list{padding:0 18px}
-.model-row{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:8px;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.model-row{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:8px;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
 .model-row.done{background:#F0FAF5;border-color:#B8E8D0}
 .model-row:active{opacity:.85}
 .chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--gray-200);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all .2s}
@@ -147,11 +154,11 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 #s-tech-main .t-hero h1{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:2px}
 #s-tech-main .t-hero p{font-size:13px;color:var(--gray-400);margin-bottom:14px}
 .tech-name-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 18px;margin-top:14px}
-.name-btn{background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+.name-btn{-webkit-user-select:none;user-select:none;background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;text-align:center}
 .name-btn:active{background:var(--blue-lt);border-color:var(--blue)}
 .name-btn.selected{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk)}
 .t-job-list{padding:14px 18px 0}
-.t-job-card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer}
+.t-job-card{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer}
 .t-job-card:active{background:var(--gray-50)}
 .t-job-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .t-job-name{font-size:15px;font-weight:700}
@@ -523,6 +530,34 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 <div class="toast" id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════
+// 모바일 터치 최적화 - 300ms 딜레이 제거
+// ══════════════════════════════════════════
+(function(){
+  // touchstart 에서 즉시 click 발생시켜 300ms 딜레이 제거
+  let lastTouch = 0;
+  document.addEventListener('touchstart', function(e){
+    const now = Date.now();
+    if(now - lastTouch < 300){ e.preventDefault(); return; } // 더블탭 줌 방지
+    lastTouch = now;
+    const el = e.target.closest('[onclick], button, a, .mode-card, .rec-item, .tech-card, .model-row, .name-btn, .t-job-card, .qk-card, .search-row, .modal-row');
+    if(!el) return;
+    // 스크롤 중에는 무시
+    let moved = false;
+    const onMove = ()=>{ moved=true; };
+    const onEnd = ()=>{
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      if(!moved){
+        e.preventDefault();
+        el.click();
+      }
+    };
+    document.addEventListener('touchmove', onMove, {passive:true});
+    document.addEventListener('touchend', onEnd);
+  }, {passive:false});
+})();
+
 // ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
