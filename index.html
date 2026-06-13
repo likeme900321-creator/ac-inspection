@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0053)file:///C:/Users/PC/Downloads/ac-inspection-v3_5.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>자재 검수</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="./ac_inspection-v5_files/pdf.min.js.다운로드"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -190,6 +190,61 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .empty{text-align:center;padding:36px 20px;color:var(--gray-400);font-size:13px;line-height:1.6}
+
+/* ── 검수거부 ── */
+.reject-banner{margin:0 18px 10px;background:var(--red-lt);border:1.5px solid var(--red);border-radius:var(--radius);padding:14px 16px}
+.reject-banner-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.reject-banner-reason{font-size:12px;color:var(--gray-600);line-height:1.5}
+.reject-banner-time{font-size:11px;color:var(--gray-400);margin-top:4px}
+.btn-reject{display:block;width:calc(100% - 36px);margin:0 18px 10px;height:48px;border:1.5px solid var(--red);border-radius:var(--radius);background:white;color:var(--red);font-size:14px;font-weight:700;cursor:pointer}
+.btn-reject:active{background:var(--red-lt)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.on{display:flex}
+.modal-sheet{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px max(20px,env(safe-area-inset-bottom))}
+.modal-sheet h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.modal-sheet p{font-size:13px;color:var(--gray-400);margin-bottom:14px}
+.modal-textarea{width:100%;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px;font-size:14px;resize:none;height:100px;font-family:inherit}
+.modal-textarea:focus{outline:none;border-color:var(--red)}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.modal-cancel{height:46px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:14px;font-weight:600;cursor:pointer}
+.modal-confirm{height:46px;border:none;border-radius:var(--radius-sm);background:var(--red);color:white;font-size:14px;font-weight:700;cursor:pointer}
+.modal-confirm:active{opacity:.85}
+.rec-item.rejected{background:var(--red-lt);border-color:#F5B8B8}
+.dot-rejected{background:var(--red)}
+
+/* ── 카메라 스캔 ── */
+.scan-fab{position:fixed;bottom:100px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(23,149,94,.4);z-index:150;transition:transform .15s}
+.scan-fab:active{transform:scale(.93)}
+.scan-modal{position:fixed;inset:0;background:#000;z-index:700;display:none;flex-direction:column}
+.scan-modal.on{display:flex}
+.scan-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.7);position:absolute;top:0;left:0;right:0;z-index:10}
+.scan-hdr-title{font-size:16px;font-weight:700;color:#fff;flex:1}
+.scan-back-btn{width:34px;height:34px;border:none;background:rgba(255,255,255,.15);border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.scan-video-wrap{flex:1;position:relative;overflow:hidden}
+#scan-video{width:100%;height:100%;object-fit:cover}
+.scan-overlay-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame-box{width:280px;height:180px;border:3px solid rgba(255,255,255,.9);border-radius:12px;position:relative}
+.scan-frame-box::before{content:'';position:absolute;inset:-3px;border-radius:12px;border:3px solid transparent;background:linear-gradient(#fff,#fff) top left/24px 3px no-repeat,linear-gradient(#fff,#fff) top left/3px 24px no-repeat,linear-gradient(#fff,#fff) top right/24px 3px no-repeat,linear-gradient(#fff,#fff) top right/3px 24px no-repeat,linear-gradient(#fff,#fff) bottom left/24px 3px no-repeat,linear-gradient(#fff,#fff) bottom left/3px 24px no-repeat,linear-gradient(#fff,#fff) bottom right/24px 3px no-repeat,linear-gradient(#fff,#fff) bottom right/3px 24px no-repeat}
+.scan-hint{color:rgba(255,255,255,.85);font-size:13px;font-weight:500;margin-top:14px;text-align:center;line-height:1.5}
+.scan-bottom{background:rgba(0,0,0,.8);padding:16px 18px max(16px,env(safe-area-inset-bottom));position:absolute;bottom:0;left:0;right:0}
+.scan-shutter{width:68px;height:68px;border-radius:50%;background:#fff;border:none;cursor:pointer;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.scan-shutter:active{transform:scale(.92);background:#eee}
+.scan-result-box{background:rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:12px;display:none}
+.scan-result-box.on{display:block}
+.scan-result-label{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px}
+.scan-result-model{font-size:15px;font-weight:700;color:#fff;word-break:break-all}
+.scan-result-match{font-size:12px;margin-top:6px;padding:4px 10px;border-radius:20px;display:inline-block}
+.scan-result-match.ok{background:var(--green-lt);color:var(--green-dk)}
+.scan-result-match.no{background:var(--red-lt);color:var(--red)}
+.scan-result-match.partial{background:var(--amber-lt);color:var(--amber)}
+.scan-action-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.scan-action-btn{height:40px;border-radius:var(--radius-sm);border:none;font-size:13px;font-weight:700;cursor:pointer}
+.scan-action-btn.confirm{background:var(--green);color:#fff}
+.scan-action-btn.retry{background:rgba(255,255,255,.15);color:#fff}
+.scan-loading{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.scan-loading.on{display:flex}
+.scan-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+.scan-loading-txt{color:#fff;font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
@@ -209,14 +264,14 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
     ⚠️ <strong>이 파일을 다운로드</strong>하여 브라우저에서 직접 열어야 Supabase 연동이 작동합니다.<br>
     Claude 미리보기에서는 외부 API 호출이 차단됩니다.
   </div>
-  <div class="mode-card" onclick="enterMode('admin')">
+  <div class="mode-card" onclick="enterMode(&#39;admin&#39;)">
     <div class="mode-card-ico blue">🗂️</div>
     <div>
       <div class="mode-card-name">관리자</div>
       <div class="mode-card-desc">PDF 업로드 · 전체 현황 관리</div>
     </div>
   </div>
-  <div class="mode-card" onclick="enterMode('tech')">
+  <div class="mode-card" onclick="enterMode(&#39;tech&#39;)">
     <div class="mode-card-ico green">🔧</div>
     <div>
       <div class="mode-card-name">기사</div>
@@ -236,7 +291,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
       <button onclick="goMode()" style="border:none;background:none;font-size:12px;color:var(--gray-400);cursor:pointer;padding:6px">모드변경</button>
     </div>
     <div class="search-box">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
       <input id="srch" type="text" placeholder="기사님 이름 검색..." autocomplete="off">
       <div class="search-drop" id="srch-drop"></div>
     </div>
@@ -244,30 +299,30 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
   <div class="qk-section">
     <div class="sec-lbl">빠른 작업</div>
     <div class="qk-grid">
-      <div class="qk-card" onclick="goScreen('s-pdf')">
+      <div class="qk-card" onclick="goScreen(&#39;s-pdf&#39;)">
         <div class="qk-ico b">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A6ED8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A6ED8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
         </div>
         <div class="qk-label">PDF 업로드</div>
         <div class="qk-desc">의뢰서 등록</div>
       </div>
-      <div class="qk-card" onclick="goScreen('s-history')">
+      <div class="qk-card" onclick="goScreen(&#39;s-history&#39;)">
         <div class="qk-ico g">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17955E" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17955E" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         </div>
         <div class="qk-label">완료 내역</div>
         <div class="qk-desc">3일간 보관</div>
       </div>
       <div class="qk-card" onclick="loadAdminJobs(true)">
         <div class="qk-ico p">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6C3FC9" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6C3FC9" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         </div>
         <div class="qk-label">새로고침</div>
         <div class="qk-desc">실시간 동기화</div>
       </div>
-      <div class="qk-card" onclick="goScreen('s-history')">
+      <div class="qk-card" onclick="goScreen(&#39;s-history&#39;)">
         <div class="qk-ico b" style="background:var(--amber-lt)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B87015" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B87015" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         </div>
         <div class="qk-label">전체 기사</div>
         <div class="qk-desc" id="admin-total-cnt">불러오는 중...</div>
@@ -283,12 +338,12 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 <!-- ===== 관리자: PDF 업로드 ===== -->
 <div id="s-pdf" class="scr">
   <div class="hdr">
-    <button class="hdr-back" onclick="goScreen('s-admin')">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    <button class="hdr-back" onclick="goScreen(&#39;s-admin&#39;)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
     </button>
     <div class="hdr-title">의뢰서 업로드</div>
   </div>
-  <div class="upload-zone" id="uz" onclick="document.getElementById('pdf-input').click()">
+  <div class="upload-zone" id="uz" onclick="document.getElementById(&#39;pdf-input&#39;).click()">
     <div class="upload-zone-ico">📄</div>
     <h2>PDF 파일 선택</h2>
     <p>탭하거나 파일을 끌어다 놓으세요</p>
@@ -312,7 +367,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 <div id="s-detail" class="scr">
   <div class="hdr">
     <button class="hdr-back" id="detail-back">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
     </button>
     <div class="hdr-title" id="detail-title">검수</div>
     <div class="chip chip-blue" id="detail-chip"></div>
@@ -328,16 +383,18 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
       <div class="stat-box"><div class="stat-n r" id="d-remain">0</div><div class="stat-l">미검수</div></div>
     </div>
   </div>
+  <div id="reject-banner"></div>
   <div class="model-list" id="model-list"></div>
   <div style="height:16px"></div>
+  <button class="btn-reject" id="reject-btn" onclick="openRejectModal()">🚫 검수 거부</button>
   <button class="btn-primary btn-green" id="complete-btn" onclick="completeInspection()">검수 완료 처리</button>
 </div>
 
 <!-- ===== 관리자: 완료 내역 ===== -->
 <div id="s-history" class="scr">
   <div class="hdr">
-    <button class="hdr-back" onclick="goScreen('s-admin')">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    <button class="hdr-back" onclick="goScreen(&#39;s-admin&#39;)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
     </button>
     <div class="hdr-title">완료 내역</div>
     <div class="chip chip-green" id="hist-cnt"></div>
@@ -360,7 +417,7 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
   <div style="padding:14px 18px 8px"><div class="sec-lbl">이름 선택</div></div>
   <div class="tech-name-sel" id="tech-name-grid"></div>
   <div class="t-job-list">
-    <div class="sec-lbl" style="margin-top:16px" id="tech-job-lbl" style="display:none">내 의뢰서</div>
+    <div class="sec-lbl" style="margin-top:16px" id="tech-job-lbl">내 의뢰서</div>
     <div id="tech-job-list"></div>
   </div>
 </div>
@@ -368,8 +425,8 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
 <!-- ===== 기사: 검수 ===== -->
 <div id="s-tech-detail" class="scr">
   <div class="hdr">
-    <button class="hdr-back" onclick="goScreen('s-tech-main')">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    <button class="hdr-back" onclick="goScreen(&#39;s-tech-main&#39;)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
     </button>
     <div class="hdr-title" id="td-title">검수</div>
     <div class="chip chip-green" id="td-chip"></div>
@@ -385,30 +442,91 @@ body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;bac
       <div class="stat-box"><div class="stat-n r" id="td-remain">0</div><div class="stat-l">남음</div></div>
     </div>
   </div>
+  <div id="td-reject-banner"></div>
   <div class="model-list" id="td-model-list"></div>
   <div style="height:16px"></div>
+  <button class="btn-reject" id="td-reject-btn" onclick="openRejectModal(&#39;tech&#39;)">🚫 검수 거부</button>
   <button class="btn-primary btn-green" id="td-complete-btn" onclick="techComplete()">검수 완료 제출</button>
+  <!-- 스캔 FAB -->
+  <button class="scan-fab" id="scan-fab" onclick="openScan()" title="AI 모델 스캔">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+  </button>
 </div>
 
+
+<!-- ===== 카메라 스캔 모달 ===== -->
+<div class="scan-modal" id="scan-modal">
+  <div class="scan-hdr">
+    <button class="scan-back-btn" onclick="closeScan()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="scan-hdr-title">📸 모델 스캔</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.5)">AI 인식</div>
+  </div>
+  <div class="scan-video-wrap">
+    <video id="scan-video" playsinline="" autoplay="" muted=""></video>
+    <div class="scan-overlay-ui">
+      <div class="scan-frame-box"></div>
+      <div class="scan-hint">라벨 전체가 프레임 안에 들어오도록<br>카메라를 맞춰주세요</div>
+    </div>
+    <div class="scan-loading" id="scan-loading">
+      <div class="scan-spinner"></div>
+      <div class="scan-loading-txt">AI가 모델명을 읽는 중...</div>
+    </div>
+  </div>
+  <div class="scan-bottom">
+    <button class="scan-shutter" onclick="captureAndRecognize()" id="scan-shutter-btn">📷</button>
+    <div class="scan-result-box" id="scan-result-box">
+      <div class="scan-result-label">인식된 모델명</div>
+      <div class="scan-result-model" id="scan-result-model">—</div>
+      <div id="scan-result-match"></div>
+      <div class="scan-action-btns" id="scan-action-btns"></div>
+    </div>
+  </div>
+</div>
+<canvas id="scan-canvas" style="display:none"></canvas>
 <!-- TABBAR (관리자용) -->
 <div class="tabbar" id="admin-tabbar" style="display:none">
-  <button class="tab-btn on" id="tb-home" onclick="goScreen('s-admin')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>홈
+  <button class="tab-btn on" id="tb-home" onclick="goScreen(&#39;s-admin&#39;)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>홈
   </button>
-  <button class="tab-btn" id="tb-pdf" onclick="goScreen('s-pdf')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>업로드
+  <button class="tab-btn" id="tb-pdf" onclick="goScreen(&#39;s-pdf&#39;)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>업로드
   </button>
-  <button class="tab-btn" id="tb-hist" onclick="goScreen('s-history')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>완료내역
+  <button class="tab-btn" id="tb-hist" onclick="goScreen(&#39;s-history&#39;)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>완료내역
   </button>
 </div>
 
+
+<!-- ===== 검수거부 모달 ===== -->
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal-sheet">
+    <h3>🚫 검수 거부</h3>
+    <p>인수거부 또는 설치취소 사유를 입력해주세요.</p>
+    <select id="reject-preset" style="width:100%;height:40px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:0 12px;font-size:14px;margin-bottom:8px;font-family:inherit">
+      <option value="">— 사유 선택 (선택사항) —</option>
+      <option value="인수거부">인수거부</option>
+      <option value="설치취소">설치취소</option>
+      <option value="고객 부재">고객 부재</option>
+      <option value="설치 환경 불가">설치 환경 불가</option>
+      <option value="제품 불량">제품 불량</option>
+      <option value="배송 오류">배송 오류</option>
+    </select>
+    <textarea class="modal-textarea" id="reject-reason-input" placeholder="상세 사유를 입력하세요..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeRejectModal()">취소</button>
+      <button class="modal-confirm" onclick="submitReject()">거부 처리</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
+const CLAUDE_KEY = '';
 const SB_URL = 'https://yfposuvjbdwzpbgrznbh.supabase.co';
 const SB_KEY = 'sb_publishable_22owTdzkaJF_7NsMEg-SoQ_63tMGDY7';
 
@@ -445,8 +563,34 @@ async function sb(method, path, body){
   return txt ? JSON.parse(txt) : null;
 }
 
-// ══════════════════════════════════════════
-// PDF.js
+// Upsert: conflict 시 update (신규/업데이트 한번에)
+async function sbUpsert(table, rows, onConflict){
+  const url = SB_URL + '/rest/v1/' + table;
+  const headers = {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Prefer': `return=representation,resolution=merge-duplicates`
+  };
+  let res;
+  try{
+    res = await fetch(url + `?on_conflict=${onConflict}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(rows)
+    });
+  } catch(netErr){
+    throw new Error('네트워크 오류: ' + netErr.message);
+  }
+  if(!res.ok){
+    const err = await res.text();
+    let msg=''; try{ msg=JSON.parse(err).message||err; }catch(e){ msg=err; }
+    throw new Error(`Supabase upsert 오류 [${res.status}]: ${msg}`);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
 // ══════════════════════════════════════════
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -479,6 +623,9 @@ let currentJobModels = [];
 let fromScreen = '';
 let selectedTech = '';
 let techJobs = [];
+let currentJobStatus = 'active';
+let currentJobRejectReason = '';
+let rejectModalMode = 'admin'; // 'admin' | 'tech'
 
 // ══════════════════════════════════════════
 // 로딩
@@ -545,7 +692,7 @@ function goScreen(id){
 async function loadAdminJobs(showRefresh=false){
   if(showRefresh) showToast('🔄 동기화 중...');
   try{
-    const jobs = await sb('GET','jobs?select=id,tech_name,job_date,models(id,name,qty,order_id,checked)&order=created_at.desc');
+    const jobs = await sb('GET','jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&order=created_at.desc');
     renderAdminJobList(jobs||[]);
     document.getElementById('admin-total-cnt').textContent = `총 ${(jobs||[]).length}건`;
     if(showRefresh) showToast('✅ 동기화 완료');
@@ -567,16 +714,17 @@ function renderAdminJobList(jobs){
     return;
   }
   el.innerHTML = jobs.map(j=>{
-    const done = (j.models||[]).filter(m=>m.checked).length;
-    const total = (j.models||[]).length;
-    const dotClass = done===total&&total>0 ? 'dot-g' : done>0 ? 'dot-a' : 'dot-r';
-    return `<div class="rec-item" onclick="openAdminDetail('${j.id}','s-admin')">
+    const isRejected = j.status==='rejected';
+    const done = (j.models_data||[]).filter(m=>m.checked).length;
+    const total = (j.models_data||[]).length;
+    const dotClass = isRejected ? 'dot-r' : done===total&&total>0 ? 'dot-g' : done>0 ? 'dot-a' : 'dot-r';
+    return `<div class="rec-item ${isRejected?'rejected':''}" onclick="openAdminDetail('${j.id}','s-admin')">
       <div class="dot ${dotClass}"></div>
       <div class="rec-info">
-        <div class="rec-name">${j.tech_name} 기사</div>
-        <div class="rec-sub">${j.job_date} · ${total}개 자재</div>
+        <div class="rec-name">${j.tech_name} 기사 ${isRejected?'<span style="font-size:11px;color:var(--red);font-weight:700">🚫 거부</span>':''}</div>
+        <div class="rec-sub">${j.job_date} · ${isRejected?`거부: ${j.reject_reason||'사유없음'}`:`${total}개 자재`}</div>
       </div>
-      <div class="rec-cnt">${done}/${total}</div>
+      <div class="rec-cnt" style="${isRejected?'color:var(--red)':''}">${isRejected?'거부':done+'/'+total}</div>
     </div>`;
   }).join('');
 }
@@ -588,17 +736,20 @@ async function openAdminDetail(jobId, from){
   showLoading('불러오는 중...');
   fromScreen = from;
   try{
-    const jobs = await sb('GET',`jobs?select=id,tech_name,job_date,models(id,name,qty,order_id,checked,checked_at)&id=eq.${jobId}`);
+    const jobs = await sb('GET',`jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&id=eq.${jobId}`);
     if(!jobs||!jobs.length){ showToast('의뢰서를 찾을 수 없습니다'); hideLoading(); return; }
     const j = jobs[0];
     currentJobId = j.id;
-    currentJobModels = j.models||[];
+    currentJobModels = (j.models_data||[]).map((m,i)=>({...m, _idx:i}));
+    currentJobStatus = j.status||'active';
+    currentJobRejectReason = j.reject_reason||'';
 
     document.getElementById('detail-back').onclick = ()=>goScreen(from);
     document.getElementById('detail-title').textContent = j.tech_name+' 검수';
     document.getElementById('d-ava').textContent = j.tech_name.slice(-2);
     document.getElementById('d-name').textContent = j.tech_name+' 기사';
     document.getElementById('d-date').textContent = j.job_date+' 의뢰서';
+    renderRejectBanner('reject-banner', j);
     renderAdminModels();
     hideLoading();
     goScreen('s-detail');
@@ -614,15 +765,18 @@ function renderAdminModels(){
   document.getElementById('d-done').textContent = done;
   document.getElementById('d-remain').textContent = total-done;
   document.getElementById('detail-chip').textContent = done+'/'+total;
+  const isRej = currentJobStatus==='rejected';
   const btn = document.getElementById('complete-btn');
-  btn.disabled = done<total;
-  btn.textContent = done===total ? '✅ 검수 완료 처리' : `검수 완료 처리 (${total-done}개 미완료)`;
+  const rbtn = document.getElementById('reject-btn');
+  btn.disabled = done<total || isRej;
+  btn.textContent = isRej ? '🚫 거부된 의뢰서' : done===total ? '✅ 검수 완료 처리' : `검수 완료 처리 (${total-done}개 미완료)`;
+  if(rbtn){ rbtn.style.display = isRej ? 'none' : 'block'; }
   document.getElementById('model-list').innerHTML = currentJobModels.map((m,i)=>`
-    <div class="model-row ${m.checked?'done':''}" onclick="adminToggle('${m.id}',${i})">
+    <div class="model-row ${m.checked?'done':''}" onclick="adminToggle(${i})">
       <div class="chk ${m.checked?'done':''}">${m.checked?'✓':''}</div>
       <div class="model-info">
         <div class="model-nm ${m.checked?'done':''}">${m.name}</div>
-        <div class="model-ord">${m.order_id||'주문번호 없음'}</div>
+        <div class="model-ord">${m.order_id||m.orderId||'주문번호 없음'}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div class="model-qty">× ${m.qty}</div>
@@ -631,17 +785,20 @@ function renderAdminModels(){
     </div>`).join('');
 }
 
-async function adminToggle(modelId, idx){
+async function adminToggle(idx){
   const newVal = !currentJobModels[idx].checked;
   currentJobModels[idx].checked = newVal;
+  currentJobModels[idx].checked_at = newVal ? new Date().toISOString() : null;
   renderAdminModels();
   try{
-    await sb('PATCH',`models?id=eq.${modelId}`,{
-      checked: newVal,
-      checked_at: newVal ? new Date().toISOString() : null
+    // models_data 전체를 한 번에 PATCH (models 테이블 호출 없음)
+    await sb('PATCH',`jobs?id=eq.${currentJobId}`,{
+      models_data: currentJobModels.map(m=>({
+        name:m.name, qty:m.qty, order_id:m.order_id||m.orderId||null,
+        checked:m.checked, checked_at:m.checked_at||null
+      }))
     });
   } catch(e){
-    // 롤백
     currentJobModels[idx].checked = !newVal;
     renderAdminModels();
     showToast('저장 실패: '+e.message);
@@ -659,10 +816,10 @@ async function completeInspection(){
     await sb('POST','history',{
       tech_name: j.tech_name,
       job_date: j.job_date,
-      models: currentJobModels.map(m=>({name:m.name,qty:m.qty,order_id:m.order_id})),
+      models: currentJobModels.map(m=>({name:m.name,qty:m.qty,order_id:m.order_id||m.orderId||null})),
       completed_at: new Date().toISOString()
     });
-    // job 삭제 (cascade로 models도 삭제)
+    // job 삭제 (models_data는 jobs 컬럼이므로 함께 삭제)
     await sb('DELETE',`jobs?id=eq.${currentJobId}`);
     hideLoading();
     showToast('✅ 검수 완료! 내역에 저장됐습니다');
@@ -684,12 +841,12 @@ srch.addEventListener('input', async function(){
   if(!matches.length){ drop.style.display='none'; return; }
   // DB에서 해당 기사 의뢰서 확인
   try{
-    const jobs = await sb('GET',`jobs?select=id,tech_name,job_date,models(checked)&tech_name=in.(${matches.map(n=>`"${n}"`).join(',')})`);
+    const jobs = await sb('GET',`jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&tech_name=in.(${matches.map(n=>`"${n}"`).join(',')})`);
     drop.style.display = 'block';
     drop.innerHTML = matches.map(name=>{
       const j = (jobs||[]).find(x=>x.tech_name===name);
-      const done = j ? (j.models||[]).filter(m=>m.checked).length : 0;
-      const total = j ? (j.models||[]).length : 0;
+      const done = j ? (j.models_data||[]).filter(m=>m.checked).length : 0;
+      const total = j ? (j.models_data||[]).length : 0;
       return `<div class="search-row" onclick="srchSelect('${j?.id||''}','${name}')">
         <div class="ava ${j?'green':''}">${name.slice(-2)}</div>
         <div>
@@ -814,90 +971,136 @@ function resetPdf(){
   document.getElementById('pdf-result-list').innerHTML='';
 }
 
+// 동시 실행 수 제한
+async function parallelLimit(tasks, limit=6){
+  const results=new Array(tasks.length);
+  let idx=0;
+  async function worker(){
+    while(idx<tasks.length){ const i=idx++; results[i]=await tasks[i](); }
+  }
+  await Promise.all(Array.from({length:Math.min(limit,tasks.length)},worker));
+  return results;
+}
+
 async function handlePdf(file){
   document.getElementById('pdf-fn').textContent=file.name;
   document.getElementById('pdf-fs').textContent=(file.size/1024/1024).toFixed(2)+' MB';
   document.getElementById('pdf-prev').classList.add('on');
   uz.style.display='none';
-  const prog=document.getElementById('parse-prog');
-  prog.classList.add('on');
-  document.getElementById('prog-label').textContent='PDF 파싱 중...';
-  document.getElementById('prog-bar').style.width='5%';
-  document.getElementById('prog-txt').textContent='파일 읽는 중...';
+  document.getElementById('parse-prog').classList.add('on');
+
+  const t0=Date.now();
+  const setP=(pct,label,txt='')=>{
+    document.getElementById('prog-bar').style.width=pct+'%';
+    document.getElementById('prog-label').textContent=label;
+    document.getElementById('prog-txt').textContent=txt;
+  };
+
   try{
+    setP(2,'📄 PDF 로드 중...','');
     const buf=await file.arrayBuffer();
     const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-    const total=pdf.numPages;
-    const parsed=[];
-    for(let p=1;p<=total;p++){
-      document.getElementById('prog-bar').style.width=(Math.round(p/total*80)+5)+'%';
-      document.getElementById('prog-txt').textContent=`${p}/${total} 페이지`;
-      const page=await pdf.getPage(p);
-      const tc=await page.getTextContent();
-      const tokens=tc.items.map(it=>it.str.trim()).filter(s=>s.length>0);
-      const job=parsePage(tokens);
-      if(job){ console.log(`[p${p}] ✅`,job.tech,job.models.length+'개'); parsed.push(job); }
-      else console.warn(`[p${p}] ⚠️`,tokens.slice(0,15));
+    const totalPages=pdf.numPages;
+
+    // ── 1단계: 전체 페이지 Promise.all로 완전 병렬 파싱 ──
+    let doneCount=0;
+    setP(5,`📄 파싱 중 (0/${totalPages})`,'');
+    const pageResults=await Promise.all(
+      Array.from({length:totalPages},(_,i)=>
+        pdf.getPage(i+1)
+          .then(p=>p.getTextContent())
+          .then(tc=>{
+            doneCount++;
+            if(doneCount%5===0||doneCount===totalPages)
+              setP(5+Math.round(doneCount/totalPages*38),
+                `📄 파싱 중 (${doneCount}/${totalPages})`,'');
+            return parsePage(tc.items.map(it=>it.str.trim()).filter(s=>s.length>0));
+          })
+      )
+    );
+    const parsed=pageResults.filter(Boolean);
+    if(!parsed.length){ setP(100,'⚠️ 파싱 결과 없음','협력업체 섹션을 찾지 못했습니다.'); return; }
+
+    const tParse=((Date.now()-t0)/1000).toFixed(1);
+    setP(44,`✅ ${parsed.length}건 파싱 (${tParse}초)`,`DB 저장 시작...`);
+
+    // ── 2단계: 기존 job 전체 조회 (1회) ──
+    const existJobs=await sb('GET','jobs?select=id,tech_name,job_date,status').then(r=>r||[]);
+    const existMap={};
+    existJobs.forEach(j=>{ existMap[j.tech_name+'|'+j.job_date]=j.id; });
+    setP(52,'🔍 중복 확인 완료','');
+
+    // ── 3단계: upsert로 신규/업데이트 한번에 처리 ──
+    // Supabase upsert: tech_name+job_date 기준으로 있으면 update, 없으면 insert
+    // → API 호출 횟수를 청크 수(100장 = 2~3번)로 줄임
+    const toModelsData = models => models.map(m=>({
+      name:m.name, qty:m.qty, order_id:m.orderId||null, checked:false, checked_at:null
+    }));
+
+    const UPSERT_CHUNK = 50;
+    let done = 0;
+    const upsertTasks = [];
+    for(let i=0; i<parsed.length; i+=UPSERT_CHUNK){
+      const chunk = parsed.slice(i, i+UPSERT_CHUNK);
+      upsertTasks.push(async()=>{
+        const rows = await sbUpsert('jobs',
+          chunk.map(j=>({
+            tech_name: j.tech,
+            job_date:  j.date,
+            models_data: toModelsData(j.models),
+            status: 'active'  // 재업로드시 거부 상태 초기화 방지하려면 제거 가능
+          })),
+          'tech_name,job_date' // conflict target
+        ) || [];
+        done += chunk.length;
+        setP(52+Math.round(done/parsed.length*46),
+          `💾 저장 중... (${done}/${parsed.length})`,
+          `총 ${parsed.length}건 upsert`);
+        return rows;
+      });
     }
-    document.getElementById('prog-label').textContent=`✅ ${parsed.length}건 파싱 완료`;
-    document.getElementById('prog-bar').style.width='90%';
-    document.getElementById('prog-txt').textContent='Supabase에 저장 중...';
-    // DB 저장
-    let saved=0;
-    for(const j of parsed){
-      try{
-        // 중복 확인
-        const exist=await sb('GET',`jobs?select=id&tech_name=eq.${encodeURIComponent(j.tech)}&job_date=eq.${encodeURIComponent(j.date)}`);
-        if(exist&&exist.length){
-          // 이미 있으면 models만 업데이트
-          const jobId=exist[0].id;
-          await sb('DELETE',`models?job_id=eq.${jobId}`);
-          for(const m of j.models){
-            await sb('POST','models',{job_id:jobId,name:m.name,qty:m.qty,order_id:m.orderId||null});
-          }
-        } else {
-          const newJob=await sb('POST','jobs',{tech_name:j.tech,job_date:j.date});
-          const jobId=newJob[0].id;
-          for(const m of j.models){
-            await sb('POST','models',{job_id:jobId,name:m.name,qty:m.qty,order_id:m.orderId||null});
-          }
-        }
-        saved++;
-      } catch(e){ console.error('저장 실패',j.tech,e); }
-    }
-    document.getElementById('prog-bar').style.width='100%';
-    document.getElementById('prog-label').textContent=`✅ ${saved}건 저장 완료`;
-    document.getElementById('prog-txt').textContent=`총 ${parsed.reduce((s,j)=>s+j.models.length,0)}개 모델`;
-    // 결과 카드 렌더
-    renderPdfResult(parsed);
-    showToast(`✅ ${saved}건 Supabase에 저장됐습니다`);
+    const upsertResults = await parallelLimit(upsertTasks, 6);
+    const newJobRows = upsertResults.flat().filter(Boolean);
+
+    // job_id 맵: upsert 결과 + 기존 existMap 합산
+    const jobIdMap = {...existMap};
+    newJobRows.forEach(r=>{ jobIdMap[r.tech_name+'|'+r.job_date]=r.id; });
+    // upsert가 기존 row를 반환 안 할 경우 existMap으로 보완
+    parsed.forEach(j=>{
+      const k=j.tech+'|'+j.date;
+      if(!jobIdMap[k]) jobIdMap[k]=existMap[k];
+    });
+
+    const totalModels=parsed.reduce((s,j)=>s+j.models.length,0);
+    const elapsed=((Date.now()-t0)/1000).toFixed(1);
+    setP(100,`✅ ${parsed.length}건 / ${totalModels}개 자재`,
+      `총 ${elapsed}초 완료`);
+    renderPdfResult(parsed, jobIdMap);
+    showToast(`✅ ${parsed.length}건 완료 (${elapsed}초)`);
+
   } catch(e){
-    document.getElementById('prog-label').textContent='❌ 오류';
-    document.getElementById('prog-txt').textContent=e.message;
+    setP(100,'❌ 오류',e.message);
     console.error(e);
   }
 }
 
-async function renderPdfResult(parsed){
+async function renderPdfResult(parsed, jobIdMap){
   const el=document.getElementById('pdf-result-list');
   if(!parsed.length){ el.innerHTML='<div class="empty">추출된 의뢰서가 없습니다</div>'; return; }
-  // DB에서 저장된 job id 조회
-  const jobs=await sb('GET',`jobs?select=id,tech_name,job_date,models(checked)&order=created_at.desc`);
-  el.innerHTML=`<div style="padding:0 0 10px;font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase">${parsed.length}건 추출 — 탭하여 검수 시작</div>`+
-  parsed.map(j=>{
-    const dbJob=(jobs||[]).find(x=>x.tech_name===j.tech&&x.job_date===j.date);
-    const done=dbJob?(dbJob.models||[]).filter(m=>m.checked).length:0;
-    const total=j.models.length;
-    const pct=total?Math.round(done/total*100):0;
-    return `<div class="tech-card" onclick="${dbJob?`openAdminDetail('${dbJob.id}','s-pdf')`:'void(0)'}">
-      <div class="tech-card-head">
-        <div class="tc-ava">${j.tech.slice(-2)}</div>
-        <div><div class="tc-name">${j.tech} 기사</div><div class="tc-meta">${total}개 자재 · ${j.date}</div></div>
-        <div class="tc-badge"><div class="tc-total">${total}</div><div class="tc-done">${done} 완료</div></div>
-      </div>
-      <div class="tc-prog"><div class="tc-prog-fill" style="width:${pct}%"></div></div>
-    </div>`;
-  }).join('');
+  el.innerHTML=
+    `<div style="padding:0 0 10px;font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase">${parsed.length}건 추출 — 탭하여 검수 시작</div>`+
+    parsed.map(j=>{
+      const jobId = jobIdMap ? jobIdMap[j.tech+'|'+j.date] : null;
+      const total=j.models.length;
+      return `<div class="tech-card" onclick="${jobId?`openAdminDetail('${jobId}','s-pdf')`:'void(0)'}">
+        <div class="tech-card-head">
+          <div class="tc-ava">${j.tech.slice(-2)}</div>
+          <div><div class="tc-name">${j.tech} 기사</div><div class="tc-meta">${total}개 자재 · ${j.date}</div></div>
+          <div class="tc-badge"><div class="tc-total">${total}</div><div class="tc-done">0 완료</div></div>
+        </div>
+        <div class="tc-prog"><div class="tc-prog-fill" style="width:0%"></div></div>
+      </div>`;
+    }).join('');
 }
 
 // ══════════════════════════════════════════
@@ -917,20 +1120,21 @@ async function selectTech(name){
   const el=document.getElementById('tech-job-list');
   el.innerHTML='<div class="empty">불러오는 중...</div>';
   try{
-    const jobs=await sb('GET',`jobs?select=id,tech_name,job_date,models(id,name,qty,order_id,checked)&tech_name=eq.${encodeURIComponent(name)}&order=created_at.desc`);
+    const jobs=await sb('GET',`jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&tech_name=eq.${encodeURIComponent(name)}&order=created_at.desc`);
     techJobs=jobs||[];
     if(!techJobs.length){ el.innerHTML='<div class="empty">배정된 의뢰서가 없습니다.<br>관리자에게 문의하세요.</div>'; return; }
     el.innerHTML=techJobs.map((j,i)=>{
-      const done=(j.models||[]).filter(m=>m.checked).length;
-      const total=(j.models||[]).length;
+      const isRejected=j.status==='rejected';
+      const done=(j.models_data||[]).filter(m=>m.checked).length;
+      const total=(j.models_data||[]).length;
       const pct=total?Math.round(done/total*100):0;
-      return `<div class="t-job-card" onclick="openTechDetail(${i})">
+      return `<div class="t-job-card ${isRejected?'rejected':''}" onclick="openTechDetail(${i})" style="${isRejected?'background:var(--red-lt);border-color:#F5B8B8':''}">
         <div class="t-job-head">
-          <div class="t-job-name">${j.job_date}</div>
-          <div class="chip ${done===total&&total>0?'chip-green':'chip-amber'}">${done}/${total}</div>
+          <div class="t-job-name">${j.job_date} ${isRejected?'<span style="color:var(--red);font-size:12px">🚫 거부됨</span>':''}</div>
+          <div class="chip ${isRejected?'chip-red':done===total&&total>0?'chip-green':'chip-amber'}" style="${isRejected?'background:var(--red-lt);color:var(--red)':''}">${isRejected?'거부':done+'/'+total}</div>
         </div>
-        <div class="t-job-progress"><div class="t-job-fill" style="width:${pct}%"></div></div>
-        <div class="t-job-meta">${total}개 자재 · ${done===total&&total>0?'✅ 검수완료':'검수 진행 중'}</div>
+        <div class="t-job-progress"><div class="t-job-fill" style="width:${pct}%;background:${isRejected?'var(--red)':'var(--green)'}"></div></div>
+        <div class="t-job-meta">${isRejected?`거부 사유: ${j.reject_reason||'없음'}`:`${total}개 자재 · ${done===total&&total>0?'✅ 검수완료':'검수 진행 중'}`}</div>
       </div>`;
     }).join('');
   } catch(e){
@@ -941,11 +1145,14 @@ async function selectTech(name){
 function openTechDetail(idx){
   const j=techJobs[idx];
   currentJobId=j.id;
-  currentJobModels=j.models||[];
+  currentJobModels=(j.models_data||[]).map(m=>({...m}));
+  currentJobStatus=j.status||'active';
+  currentJobRejectReason=j.reject_reason||'';
   document.getElementById('td-title').textContent=j.tech_name+' 검수';
   document.getElementById('td-ava').textContent=j.tech_name.slice(-2);
   document.getElementById('td-name').textContent=j.tech_name+' 기사';
   document.getElementById('td-date').textContent=j.job_date+' 의뢰서';
+  renderRejectBanner('td-reject-banner', j);
   renderTechModels();
   goScreen('s-tech-detail');
 }
@@ -957,15 +1164,18 @@ function renderTechModels(){
   document.getElementById('td-done').textContent=done;
   document.getElementById('td-remain').textContent=total-done;
   document.getElementById('td-chip').textContent=done+'/'+total;
+  const isRej=currentJobStatus==='rejected';
   const btn=document.getElementById('td-complete-btn');
-  btn.disabled=done<total;
-  btn.textContent=done===total?'✅ 검수 완료 제출':`검수 완료 제출 (${total-done}개 남음)`;
+  const rbtn=document.getElementById('td-reject-btn');
+  btn.disabled=done<total||isRej;
+  btn.textContent=isRej?'🚫 거부된 의뢰서':done===total?'✅ 검수 완료 제출':`검수 완료 제출 (${total-done}개 남음)`;
+  if(rbtn){ rbtn.style.display=isRej?'none':'block'; }
   document.getElementById('td-model-list').innerHTML=currentJobModels.map((m,i)=>`
-    <div class="model-row ${m.checked?'done':''}" onclick="techToggle('${m.id}',${i})">
+    <div class="model-row ${m.checked?'done':''}" onclick="techToggle(${i})">
       <div class="chk ${m.checked?'done':''}">${m.checked?'✓':''}</div>
       <div class="model-info">
         <div class="model-nm ${m.checked?'done':''}">${m.name}</div>
-        <div class="model-ord">${m.order_id||'주문번호 없음'}</div>
+        <div class="model-ord">${m.order_id||m.orderId||'주문번호 없음'}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div class="model-qty">× ${m.qty}</div>
@@ -974,14 +1184,17 @@ function renderTechModels(){
     </div>`).join('');
 }
 
-async function techToggle(modelId, idx){
+async function techToggle(idx){
   const newVal=!currentJobModels[idx].checked;
   currentJobModels[idx].checked=newVal;
+  currentJobModels[idx].checked_at=newVal?new Date().toISOString():null;
   renderTechModels();
   try{
-    await sb('PATCH',`models?id=eq.${modelId}`,{
-      checked:newVal,
-      checked_at:newVal?new Date().toISOString():null
+    await sb('PATCH',`jobs?id=eq.${currentJobId}`,{
+      models_data: currentJobModels.map(m=>({
+        name:m.name, qty:m.qty, order_id:m.order_id||m.orderId||null,
+        checked:m.checked, checked_at:m.checked_at||null
+      }))
     });
     showToast(newVal?'✅ 검수 확인':'↩ 검수 취소');
   } catch(e){
@@ -989,6 +1202,206 @@ async function techToggle(modelId, idx){
     renderTechModels();
     showToast('저장 실패: '+e.message);
   }
+}
+
+
+// ══════════════════════════════════════════
+// ── 검수 거부 ──
+// ══════════════════════════════════════════
+function renderRejectBanner(elId, job){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  if(job.status!=='rejected'){ el.innerHTML=''; return; }
+  const dt=job.rejected_at?new Date(job.rejected_at):null;
+  const dtStr=dt?`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')} 거부`:'';
+  el.innerHTML=`<div class="reject-banner">
+    <div class="reject-banner-title">🚫 검수 거부됨</div>
+    <div class="reject-banner-reason">${job.reject_reason||'사유 없음'}</div>
+    ${dtStr?`<div class="reject-banner-time">${dtStr}</div>`:''}
+  </div>`;
+}
+
+function openRejectModal(mode='admin'){
+  rejectModalMode=mode;
+  document.getElementById('reject-reason-input').value='';
+  document.getElementById('reject-preset').value='';
+  document.getElementById('reject-modal').classList.add('on');
+  setTimeout(()=>document.getElementById('reject-reason-input').focus(),100);
+}
+function closeRejectModal(){
+  document.getElementById('reject-modal').classList.remove('on');
+}
+// 프리셋 선택시 textarea에 자동 입력
+document.getElementById('reject-preset').addEventListener('change',function(){
+  if(this.value) document.getElementById('reject-reason-input').value=this.value;
+});
+
+async function submitReject(){
+  const reason=document.getElementById('reject-reason-input').value.trim();
+  if(!reason){ showToast('사유를 입력해주세요'); return; }
+  closeRejectModal();
+  showLoading('거부 처리 중...');
+  try{
+    await sb('PATCH',`jobs?id=eq.${currentJobId}`,{
+      status:'rejected',
+      reject_reason:reason,
+      rejected_at:new Date().toISOString()
+    });
+    currentJobStatus='rejected';
+    currentJobRejectReason=reason;
+    const fakeJob={status:'rejected',reject_reason:reason,rejected_at:new Date().toISOString()};
+    if(rejectModalMode==='admin'){
+      renderRejectBanner('reject-banner',fakeJob);
+      renderAdminModels();
+    } else {
+      renderRejectBanner('td-reject-banner',fakeJob);
+      renderTechModels();
+    }
+    hideLoading();
+    showToast('🚫 검수 거부 처리됐습니다');
+  } catch(e){
+    hideLoading(); showToast('오류: '+e.message);
+  }
+}
+
+
+// ══════════════════════════════════════════
+// ── AI 카메라 스캔 ──
+// ══════════════════════════════════════════
+let scanStream = null;
+let lastRecognizedModel = '';
+
+async function openScan(){
+  document.getElementById('scan-modal').classList.add('on');
+  document.getElementById('scan-result-box').classList.remove('on');
+  lastRecognizedModel = '';
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+    });
+    document.getElementById('scan-video').srcObject = scanStream;
+  } catch(e){
+    showToast('카메라 권한을 허용해주세요');
+    closeScan();
+  }
+}
+
+function closeScan(){
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  document.getElementById('scan-modal').classList.remove('on');
+}
+
+async function captureAndRecognize(){
+  const video = document.getElementById('scan-video');
+  const canvas = document.getElementById('scan-canvas');
+  const loading = document.getElementById('scan-loading');
+
+  // 캔버스에 현재 프레임 캡처
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+  loading.classList.add('on');
+  document.getElementById('scan-shutter-btn').disabled = true;
+
+  try{
+    // 의뢰서 모델명 목록 구성
+    const modelList = currentJobModels.map(m=>m.name).join(', ');
+
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:200,
+        messages:[{
+          role:'user',
+          content:[
+            {
+              type:'image',
+              source:{ type:'base64', media_type:'image/jpeg', data:base64 }
+            },
+            {
+              type:'text',
+              text:`이 이미지에서 LG 에어컨 모델명을 찾아주세요.
+모델명 패턴: 영문+숫자 조합으로 끝에 .AKOR, .EKOR, .ASM 등이 붙습니다.
+예: FQ18GC1EAN.AKOR, SQ06GA1WAJ.AKOR, PQ061208C41.AKOR
+
+의뢰서의 모델 목록: ${modelList}
+
+응답 형식 (JSON만, 설명 없이):
+{"found":"인식된모델명","matched":"의뢰서에서일치하는모델명또는null","confidence":"high/medium/low"}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const txt = data.content?.[0]?.text || '{}';
+    let result = {};
+    try{ result = JSON.parse(txt.replace(/```json?|```/g,'')); }
+    catch(e){ result = {found: txt.trim().split('
+')[0], matched:null, confidence:'low'}; }
+
+    lastRecognizedModel = result.found || '';
+    showScanResult(result);
+
+  } catch(e){
+    showToast('인식 실패: ' + e.message);
+  } finally {
+    loading.classList.remove('on');
+    document.getElementById('scan-shutter-btn').disabled = false;
+  }
+}
+
+function showScanResult(result){
+  const box = document.getElementById('scan-result-box');
+  box.classList.add('on');
+  document.getElementById('scan-result-model').textContent = result.found || '인식 실패';
+
+  const matchEl = document.getElementById('scan-result-match');
+  const actEl = document.getElementById('scan-action-btns');
+
+  if(result.matched){
+    // 의뢰서 모델과 일치
+    const idx = currentJobModels.findIndex(m=>m.name===result.matched);
+    const alreadyChecked = idx>=0 && currentJobModels[idx].checked;
+    matchEl.innerHTML = `<span class="scan-result-match ok">✅ 의뢰서 일치: ${result.matched}</span>`;
+    if(alreadyChecked){
+      actEl.innerHTML = `<div style="text-align:center;color:rgba(255,255,255,.6);font-size:12px;padding:4px">이미 검수 완료된 모델입니다</div>
+        <button class="scan-action-btn retry" onclick="resetScanResult()">다시 찍기</button>`;
+    } else {
+      actEl.innerHTML = `
+        <button class="scan-action-btn retry" onclick="resetScanResult()">다시 찍기</button>
+        <button class="scan-action-btn confirm" onclick="confirmScanMatch(${idx})">✓ 검수 확인</button>`;
+    }
+  } else if(result.found){
+    // 인식은 됐지만 의뢰서에 없음
+    matchEl.innerHTML = `<span class="scan-result-match no">⚠️ 의뢰서에 없는 모델</span>`;
+    actEl.innerHTML = `<button class="scan-action-btn retry" style="grid-column:1/-1" onclick="resetScanResult()">다시 찍기</button>`;
+  } else {
+    matchEl.innerHTML = `<span class="scan-result-match no">인식 실패 — 다시 시도</span>`;
+    actEl.innerHTML = `<button class="scan-action-btn retry" style="grid-column:1/-1" onclick="resetScanResult()">다시 찍기</button>`;
+  }
+}
+
+function resetScanResult(){
+  document.getElementById('scan-result-box').classList.remove('on');
+  lastRecognizedModel = '';
+}
+
+async function confirmScanMatch(modelIdx){
+  if(modelIdx < 0) return;
+  closeScan();
+  await techToggle(modelIdx);
+  showToast('✅ ' + currentJobModels[modelIdx].name + ' 검수 완료!');
 }
 
 async function techComplete(){
@@ -1000,7 +1413,7 @@ async function techComplete(){
     await sb('POST','history',{
       tech_name:selectedTech,
       job_date:techJobs.find(j=>j.id===currentJobId)?.job_date||'',
-      models:currentJobModels.map(m=>({name:m.name,qty:m.qty,order_id:m.order_id})),
+      models:currentJobModels.map(m=>({name:m.name,qty:m.qty,order_id:m.order_id||m.orderId||null})),
       completed_at:new Date().toISOString()
     });
     await sb('DELETE',`jobs?id=eq.${currentJobId}`);
@@ -1018,5 +1431,6 @@ async function techComplete(){
 // ══════════════════════════════════════════
 document.getElementById('admin-date') && (document.getElementById('admin-date').textContent='');
 </script>
-</body>
-</html>
+
+
+</body></html>
