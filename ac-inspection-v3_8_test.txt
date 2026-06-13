@@ -1,0 +1,1622 @@
+﻿﻿<!DOCTYPE html>
+<!-- saved from url=(0053)file:///C:/Users/PC/Downloads/ac-inspection-v3_8.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>자재 검수</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<style>
+/* 터치 딜레이 완전 제거 */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html{touch-action:manipulation}
+/* 터치 타겟 최소 44px 보장 */
+button,a,[onclick]{min-height:44px;cursor:pointer}
+:root{
+  --blue:#1A6ED8;--blue-lt:#E8F1FC;--blue-dk:#0C3E8A;
+  --green:#17955E;--green-lt:#E2F5EE;--green-dk:#0A5C38;
+  --red:#D94040;--red-lt:#FCEAEA;
+  --amber:#B87015;--amber-lt:#FAF0DA;
+  --purple:#6C3FC9;--purple-lt:#F0EAFB;
+  --gray-50:#F7F7F6;--gray-100:#EEEEED;--gray-200:#D5D4CC;
+  --gray-400:#8A8880;--gray-600:#5C5B57;--gray-900:#1C1C1A;
+  --white:#FFFFFF;--radius:14px;--radius-sm:8px;
+}
+body{touch-action:manipulation;font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;max-width:480px;margin:0 auto}
+
+/* ── 공통 ── */
+.hdr{background:var(--white);border-bottom:1px solid var(--gray-100);padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.hdr-back{width:34px;height:34px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--gray-600)}
+.hdr-back:active{background:var(--gray-100)}
+.hdr-title{font-size:16px;font-weight:700;flex:1;letter-spacing:-.3px}
+.chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.chip-blue{background:var(--blue-lt);color:var(--blue-dk)}
+.chip-green{background:var(--green-lt);color:var(--green-dk)}
+.chip-purple{background:var(--purple-lt);color:var(--purple)}
+.chip-amber{background:var(--amber-lt);color:var(--amber)}
+
+.scr{display:none;min-height:100vh;padding-bottom:90px}
+.scr.on{display:block}
+
+.sec-lbl{font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+
+.btn-primary{display:block;width:calc(100% - 36px);margin:0 18px;height:50px;border:none;border-radius:var(--radius);background:var(--blue);color:var(--white);font-size:15px;font-weight:700;cursor:pointer}
+.btn-primary:active{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:default}
+.btn-green{background:var(--green)}
+
+/* ── 모드 선택 화면 ── */
+#s-mode{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;gap:16px}
+.mode-logo{font-size:36px;margin-bottom:8px}
+.mode-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.mode-sub{font-size:13px;color:var(--gray-400);margin-bottom:24px}
+.mode-card{width:100%;background:var(--white);border:1.5px solid var(--gray-100);border-radius:var(--radius);padding:20px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:transform .1s;-webkit-user-select:none;user-select:none}
+.mode-card:active{transform:scale(.97)}
+.mode-card-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.mode-card-ico.blue{background:var(--blue-lt)}
+.mode-card-ico.green{background:var(--green-lt)}
+.mode-card-name{font-size:16px;font-weight:700}
+.mode-card-desc{font-size:12px;color:var(--gray-400);margin-top:3px}
+
+/* ── 관리자 메인 ── */
+#s-admin .hero{background:var(--white);padding:20px 18px 18px;border-bottom:1px solid var(--gray-100);overflow:visible;position:relative;z-index:10}
+#s-admin .hero h1{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:2px}
+#s-admin .hero p{font-size:13px;color:var(--gray-400)}
+.search-box{position:relative;margin-top:14px}
+.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gray-400)}
+.search-box input{width:100%;height:46px;padding:0 14px 0 40px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:15px;background:var(--gray-50)}
+.search-box input:focus{outline:none;border-color:var(--blue);background:var(--white)}
+.search-drop{background:var(--white);border:1.5px solid var(--gray-200);border-top:none;border-radius:0 0 var(--radius) var(--radius);display:none;overflow:hidden;position:absolute;left:0;right:0;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.search-row{-webkit-user-select:none;user-select:none;display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--gray-100)}
+.search-row:last-child{border-bottom:none}
+.search-row:active{background:var(--gray-50)}
+.ava{width:36px;height:36px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blue-dk);flex-shrink:0}
+.ava.green{background:var(--green-lt);color:var(--green-dk)}
+.ava.amber{background:var(--amber-lt);color:var(--amber)}
+.qk-section{padding:16px 18px 0}
+.qk-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qk-card{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px 14px;cursor:pointer;transition:transform .1s}
+.qk-card:active{transform:scale(.97);background:var(--gray-50)}
+.qk-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px}
+.qk-ico.b{background:var(--blue-lt)}.qk-ico.g{background:var(--green-lt)}.qk-ico.p{background:var(--purple-lt)}
+.qk-label{font-size:13px;font-weight:700}
+.qk-desc{font-size:11px;color:var(--gray-400);margin-top:2px}
+.recent-sec{padding:16px 18px 0}
+.rec-item{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:13px 14px;margin-bottom:7px;cursor:pointer;display:flex;align-items:center;gap:11px}
+.rec-item:active{background:var(--gray-50)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dot-g{background:var(--green)}.dot-a{background:var(--amber)}.dot-r{background:var(--red)}
+.rec-info{flex:1}
+.rec-name{font-size:14px;font-weight:700}
+.rec-sub{font-size:11px;color:var(--gray-400);margin-top:2px}
+.rec-cnt{font-size:12px;font-weight:700;color:var(--gray-600);white-space:nowrap}
+
+/* ── PDF 업로드 및 협력업체 전용 파싱 통합 로직 (수정본) ── */
+async function handlePdf(pdfData) {
+  showLoading('PDF 분석 및 협력업체 데이터 필터링 중...');
+  try {
+    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+    const numPages = pdf.numPages;
+    let jobsList = [];
+    
+    document.getElementById('parse-prog-zone').classList.add('on');
+
+    // 1. 페이지별로 순회하며 텍스트 추출 및 필터링
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      
+      // 줄바꿈(\n) 단위를 보존하여 배열로 정렬
+      const pageLines = textContent.items.map(item => item.str.trim()).filter(str => str !== "");
+
+      // ⭐️ 한 페이지 내에서 "협력업체"용 데이터만 쏙 발라내기
+      const parsedJob = parsePageTextToJob(pageLines); 
+      
+      if (parsedJob && parsedJob.tech_name && parsedJob.models.length > 0) {
+        jobsList.push(parsedJob);
+      }
+      
+      document.getElementById('prog-bar-fill').style.width = `${Math.round((i / numPages) * 100)}%`;
+    }
+
+    if (jobsList.length === 0) {
+      hideLoading();
+      showToast('⚠️ 협력업체용 자재 데이터를 찾지 못했습니다.');
+      return;
+    }
+
+    // 2. 기사명 + 날짜 완전 중복 데이터 최종 병합
+    const finalJobs = [];
+    jobsList.forEach(current => {
+      const existing = finalJobs.find(j => j.tech_name === current.tech_name && j.job_date === current.job_date);
+      if (existing) {
+        existing.models = [...existing.models, ...current.models];
+      } else {
+        finalJobs.push(current);
+      }
+    });
+
+    // 3. Supabase 데이터베이스 전송 (기존의 유니크 제약조건과 충돌하지 않도록 온 conflict 제거)
+    for (const job of finalJobs) {
+      // 주소 뒤에 ?on_conflict를 붙이지 않고 순수한 일반 POST 방식으로 밀어 넣습니다.
+      const jobRes = await sb('POST', 'jobs', {
+        tech_name: job.tech_name,
+        job_date: job.job_date,
+        status: 'active'
+      });
+      
+      if (jobRes && jobRes[0] && job.models.length > 0) {
+        const jobId = jobRes[0].id;
+        const modelsToInsert = job.models.map(m => ({
+          job_id: jobId,
+          name: m.name,            // 모델명
+          qty: parseInt(m.qty) || 1, // 수량
+          order_id: m.order_id,    // 주문서번호
+          location: m.location,      // 제품위치 (DB 연동)
+          order_type: m.order_type,  // 원주문구분 (DB 연동)
+          checked: false
+        }));
+        
+        await sb('POST', 'models', modelsToInsert);
+      }
+    }
+    
+    hideLoading();
+    showToast('✅ 협력업체 의뢰서 자재 등록 성공!');
+    await loadJobs();
+    
+  } catch (err) {
+    console.error("PDF 처리 중 오류:", err);
+    hideLoading();
+    alert('데이터 파싱 또는 저장 중 오류가 발생했습니다. F12 콘솔을 확인하세요.');
+  }
+}
+
+// ⭐️ [핵심 알고리즘] 한 페이지 내에서 "협력업체" 구간만 똑똑하게 발라내는 함수
+function parsePageTextToJob(lines) {
+  let tech_name = "";
+  let job_date = "";
+  let models = [];
+  
+  // 영역 판별 스위치 플래그 (기본값 ON)
+  let isCompanySection = true; 
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].replace(/["']/g, '').trim();
+    if (!line) continue;
+
+    // A. 기사명 및 설치일 추출
+    if (line.includes("설치기사") || line.includes("기사명")) {
+      if (lines[i+1]) tech_name = lines[i+1].replace(/["'\n]/g, '').trim();
+    }
+    if (line.includes("설치일")) {
+      if (lines[i+1]) {
+        const dateMatch = lines[i+1].match(/\d{8}/);
+        if (dateMatch) job_date = dateMatch[0];
+      }
+    }
+
+    // B. 🚨 [구역 감지] 설치기사용 제목이 시작되면 스위치를 완전히 끕니다.
+    if (line.includes("설치제품  설치  의뢰서(설치기") || line.includes("의뢰서(설치기사)") || line.includes("의뢰서(설치기")) {
+      isCompanySection = false;
+      continue;
+    }
+    
+    // 협력업체용 제목이 시작되면 다시 스위치를 켭니다.
+    if (line.includes("설치제품  설치  의뢰서(협력업체)") || line.includes("의뢰서(협력업체)")) {
+      isCompanySection = true;
+      continue;
+    }
+
+    // C. 🎯 [자재 중요 4대 속성 파싱] "배차확정" 또는 "일반"을 만났을 때
+    if (line.includes("배차확정") || line.includes("일반")) {
+      
+      // 💡 오직 협력업체 구역 스위치가 켜져있을 때만 수집 대상 배열에 담습니다!
+      if (isCompanySection) {
+        let orderId = "";
+        let modelName = "";
+        let qty = 1;
+        let location = "기본";
+        let orderType = "일반";
+
+        if (line.includes(",")) {
+          const parts = line.split(",").map(p => p.trim());
+          orderId = parts[0] || "";
+          modelName = parts[2] || parts[1] || "";
+          qty = parseInt(parts[3]) || 1;
+          location = parts[4] || "기본";
+          orderType = parts[6] || "일반";
+        } else {
+          modelName = line.replace("배차확정", "").replace("일반", "").trim();
+          orderId = lines[i-1] ? lines[i-1].trim() : "";
+          
+          if (lines[i+1] && !isNaN(lines[i+1].trim())) {
+            qty = parseInt(lines[i+1].trim()) || 1;
+          }
+          if (line.includes("거실") || line.includes("안방") || line.includes("벽걸이")) {
+             location = line.match(/(거실|안방|벽걸이|스탠드|실외기)/)?.[0] || "기본위치";
+          }
+        }
+
+        if (modelName) {
+          models.push({
+            order_id: orderId,
+            name: modelName,
+            qty: qty,
+            location: location,
+            order_type: orderType
+          });
+        }
+      } else {
+        // 설치기사용 영역 자재는 로그만 남기고 묵인(패스)합니다.
+        console.log("➔ [필터링 완료] 설치기사용 자재 라인 제외:", line);
+      }
+    }
+  }
+
+  if (!job_date) job_date = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  if (!tech_name) tech_name = "미배정 기사";
+
+  return { tech_name, job_date, models };
+}
+
+// 기존 충돌 원인이었던 커스텀 업서트 함수를 순수 일반 POST 우회 함수로 안전하게 변경합니다.
+async function sbUpsert(table, data){
+  return await sb('POST', table, data);
+}
+  
+
+/* ── 검수 상세 ── */
+.detail-hero{background:var(--white);padding:18px;border-bottom:1px solid var(--gray-100);margin-bottom:10px}
+.detail-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.detail-ava{width:50px;height:50px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--blue-dk)}
+.detail-ava.green{background:var(--green-lt);color:var(--green-dk)}
+.detail-name{font-size:18px;font-weight:800}
+.detail-date{font-size:12px;color:var(--gray-400);margin-top:2px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat-box{background:var(--gray-50);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.stat-n{font-size:20px;font-weight:800}
+.stat-n.g{color:var(--green)}.stat-n.r{color:var(--red)}.stat-n.b{color:var(--blue)}
+.stat-l{font-size:10px;color:var(--gray-400);margin-top:1px}
+.model-list{padding:0 18px}
+.model-row{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:8px;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.model-row.done{background:#F0FAF5;border-color:#B8E8D0}
+.model-row:active{opacity:.85}
+.chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--gray-200);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all .2s}
+.chk.done{background:var(--green);border-color:var(--green);color:white}
+.model-info{flex:1;min-width:0}
+.model-nm{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.model-nm.done{text-decoration:line-through;color:var(--gray-400)}
+.model-ord{font-size:11px;color:var(--gray-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.model-qty{font-size:13px;font-weight:700;color:var(--gray-600);flex-shrink:0;text-align:right}
+.qty-ok{font-size:11px;color:var(--green);margin-top:1px}
+
+/* ── 기사 모드 ── */
+#s-tech-main .t-hero{background:var(--white);padding:20px 18px 18px;border-bottom:1px solid var(--gray-100)}
+#s-tech-main .t-hero h1{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:2px}
+#s-tech-main .t-hero p{font-size:13px;color:var(--gray-400);margin-bottom:14px}
+.tech-name-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 18px;margin-top:14px}
+.name-btn{-webkit-user-select:none;user-select:none;background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:11px 8px;font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+.name-btn:active{background:var(--blue-lt);border-color:var(--blue)}
+.name-btn.selected{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk)}
+.t-job-list{padding:14px 18px 0}
+.t-job-card{-webkit-user-select:none;user-select:none;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer}
+.t-job-card:active{background:var(--gray-50)}
+.t-job-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.t-job-name{font-size:15px;font-weight:700}
+.t-job-progress{height:4px;background:var(--gray-100);border-radius:2px}
+.t-job-fill{height:100%;background:var(--green);border-radius:2px}
+.t-job-meta{font-size:11px;color:var(--gray-400);margin-top:6px}
+
+/* ── 완료 내역 ── */
+.hist-item{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin:0 18px 8px;padding:14px 16px}
+.hist-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hist-ava{width:36px;height:36px;border-radius:50%;background:var(--green-lt);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green-dk);flex-shrink:0}
+.hist-name{font-size:14px;font-weight:700}
+.hist-dt{font-size:11px;color:var(--gray-400);margin-top:1px}
+.hist-exp{margin-left:auto;font-size:10px;color:var(--amber);font-weight:700;background:var(--amber-lt);padding:2px 7px;border-radius:10px}
+.hist-tags{display:flex;flex-wrap:wrap;gap:5px}
+.hist-tag{font-size:11px;background:var(--green-lt);color:var(--green);padding:3px 8px;border-radius:6px;font-weight:600}
+
+/* ── 실시간 뱃지 ── */
+.live-dot{display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-right:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── 로딩 ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--gray-100);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--gray-600);font-weight:600}
+
+/* ── TABBAR ── */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1px solid var(--gray-100);display:flex;padding:6px 0 max(6px,env(safe-area-inset-bottom));z-index:200}
+.tab-btn{flex:1;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0;color:var(--gray-400);font-size:10px;font-weight:600}
+.tab-btn.on{color:var(--blue)}
+.tab-btn svg{width:22px;height:22px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(14px);background:#1C1C1A;color:#fff;padding:11px 18px;border-radius:28px;font-size:13px;font-weight:600;opacity:0;transition:all .22s;white-space:nowrap;z-index:9999;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.empty{text-align:center;padding:36px 20px;color:var(--gray-400);font-size:13px;line-height:1.6}
+
+/* ── 검수거부 ── */
+.reject-banner{margin:0 18px 10px;background:var(--red-lt);border:1.5px solid var(--red);border-radius:var(--radius);padding:14px 16px}
+.reject-banner-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.reject-banner-reason{font-size:12px;color:var(--gray-600);line-height:1.5}
+.reject-banner-time{font-size:11px;color:var(--gray-400);margin-top:4px}
+.btn-reject{display:block;width:calc(100% - 36px);margin:0 18px 10px;height:48px;border:1.5px solid var(--red);border-radius:var(--radius);background:white;color:var(--red);font-size:14px;font-weight:700;cursor:pointer}
+.btn-reject:active{background:var(--red-lt)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.on{display:flex}
+.modal-sheet{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px max(20px,env(safe-area-inset-bottom))}
+.modal-sheet h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.modal-sheet p{font-size:13px;color:var(--gray-400);margin-bottom:14px}
+.modal-textarea{width:100%;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px;font-size:14px;resize:none;height:100px;font-family:inherit}
+.modal-textarea:focus{outline:none;border-color:var(--red)}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.modal-cancel{height:46px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:14px;font-weight:600;cursor:pointer}
+.modal-confirm{height:46px;border:none;border-radius:var(--radius-sm);background:var(--red);color:white;font-size:14px;font-weight:700;cursor:pointer}
+.modal-confirm:active{opacity:.85}
+.rec-item.rejected{background:var(--red-lt);border-color:#F5B8B8}
+.dot-rejected{background:var(--red)}
+
+/* ── 카메라 스캔 ── */
+.scan-fab{position:fixed;bottom:100px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(23,149,94,.4);z-index:150;transition:transform .15s}
+.scan-fab:active{transform:scale(.93)}
+.scan-modal{position:fixed;inset:0;background:#000;z-index:700;display:none;flex-direction:column}
+.scan-modal.on{display:flex}
+.scan-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.7);position:absolute;top:0;left:0;right:0;z-index:10}
+.scan-hdr-title{font-size:16px;font-weight:700;color:#fff;flex:1}
+.scan-back-btn{width:34px;height:34px;border:none;background:rgba(255,255,255,.15);border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.scan-video-wrap{flex:1;position:relative;overflow:hidden}
+#scan-video{width:100%;height:100%;object-fit:cover}
+.scan-overlay-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame-box{width:280px;height:180px;border:3px solid rgba(255,255,255,.9);border-radius:12px;position:relative}
+.scan-frame-box::before{content:'';position:absolute;inset:-3px;border-radius:12px;border:3px solid transparent;background:linear-gradient(#fff,#fff) top left/24px 3px no-repeat,linear-gradient(#fff,#fff) top left/3px 24px no-repeat,linear-gradient(#fff,#fff) top right/24px 3px no-repeat,linear-gradient(#fff,#fff) top right/3px 24px no-repeat,linear-gradient(#fff,#fff) bottom left/24px 3px no-repeat,linear-gradient(#fff,#fff) bottom left/3px 24px no-repeat,linear-gradient(#fff,#fff) bottom right/24px 3px no-repeat,linear-gradient(#fff,#fff) bottom right/3px 24px no-repeat}
+.scan-hint{color:rgba(255,255,255,.85);font-size:13px;font-weight:500;margin-top:14px;text-align:center;line-height:1.5}
+.scan-bottom{background:rgba(0,0,0,.8);padding:16px 18px max(16px,env(safe-area-inset-bottom));position:absolute;bottom:0;left:0;right:0}
+.scan-shutter{width:68px;height:68px;border-radius:50%;background:#fff;border:none;cursor:pointer;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.scan-shutter:active{transform:scale(.92);background:#eee}
+.scan-result-box{background:rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:12px;display:none}
+.scan-result-box.on{display:block}
+.scan-result-label{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px}
+.scan-result-model{font-size:15px;font-weight:700;color:#fff;word-break:break-all}
+.scan-result-match{font-size:12px;margin-top:6px;padding:4px 10px;border-radius:20px;display:inline-block}
+.scan-result-match.ok{background:var(--green-lt);color:var(--green-dk)}
+.scan-result-match.no{background:var(--red-lt);color:var(--red)}
+.scan-result-match.partial{background:var(--amber-lt);color:var(--amber)}
+.scan-action-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.scan-action-btn{height:40px;border-radius:var(--radius-sm);border:none;font-size:13px;font-weight:700;cursor:pointer}
+.scan-action-btn.confirm{background:var(--green);color:#fff}
+.scan-action-btn.retry{background:rgba(255,255,255,.15);color:#fff}
+.scan-loading{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.scan-loading.on{display:flex}
+.scan-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+.scan-loading-txt{color:#fff;font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- ===== 로딩 오버레이 ===== -->
+<div class="loading-overlay" id="loading" style="display:none">
+  <div class="loading-spinner"></div>
+  <div class="loading-txt" id="loading-txt">처리 중...</div>
+</div>
+
+<!-- ===== 모드 선택 ===== -->
+<div id="s-mode" class="scr on">
+  <div class="mode-logo">❄️</div>
+  <div class="mode-title">자재 검수</div>
+  <div class="mode-sub">다온ENG · 에어컨 설치 검수 시스템</div>
+  <div style="width:100%;background:var(--amber-lt);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--amber);line-height:1.6;margin-bottom:8px">
+    ⚠️ <strong>이 파일을 다운로드</strong>하여 브라우저에서 직접 열어야 Supabase 연동이 작동합니다.<br>
+    Claude 미리보기에서는 외부 API 호출이 차단됩니다.
+  </div>
+  <div class="mode-card" onclick="enterMode(&#39;admin&#39;)">
+    <div class="mode-card-ico blue">🗂️</div>
+    <div>
+      <div class="mode-card-name">관리자</div>
+      <div class="mode-card-desc">PDF 업로드 · 전체 현황 관리</div>
+    </div>
+  </div>
+  <div class="mode-card" onclick="enterMode(&#39;tech&#39;)">
+    <div class="mode-card-ico green">🔧</div>
+    <div>
+      <div class="mode-card-name">기사</div>
+      <div class="mode-card-desc">내 의뢰서 확인 · 검수 체크</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 관리자: 메인 ===== -->
+<div id="s-admin" class="scr">
+  <div class="hero">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h1>관리자</h1>
+        <p id="admin-date"></p>
+      </div>
+      <button onclick="goMode()" style="border:none;background:none;font-size:12px;color:var(--gray-400);cursor:pointer;padding:6px">모드변경</button>
+    </div>
+    <div class="search-box">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+      <input id="srch" type="text" placeholder="기사님 이름 검색..." autocomplete="off">
+      <div class="search-drop" id="srch-drop"></div>
+    </div>
+  </div>
+  <div class="qk-section">
+    <div class="sec-lbl">빠른 작업</div>
+    <div class="qk-grid">
+      <div class="qk-card" onclick="goScreen(&#39;s-pdf&#39;)">
+        <div class="qk-ico b">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A6ED8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+        </div>
+        <div class="qk-label">PDF 업로드</div>
+        <div class="qk-desc">의뢰서 등록</div>
+      </div>
+      <div class="qk-card" onclick="goScreen(&#39;s-history&#39;)">
+        <div class="qk-ico g">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17955E" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div class="qk-label">완료 내역</div>
+        <div class="qk-desc">3일간 보관</div>
+      </div>
+      <div class="qk-card" onclick="loadAdminJobs(true)">
+        <div class="qk-ico p">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6C3FC9" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </div>
+        <div class="qk-label">새로고침</div>
+        <div class="qk-desc">실시간 동기화</div>
+      </div>
+      <div class="qk-card" onclick="goScreen(&#39;s-history&#39;)">
+        <div class="qk-ico b" style="background:var(--amber-lt)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B87015" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <div class="qk-label">전체 기사</div>
+        <div class="qk-desc" id="admin-total-cnt">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+  <div class="recent-sec">
+    <div class="sec-lbl"><span class="live-dot"></span>진행 중인 의뢰서</div>
+    <div id="admin-job-list"></div>
+  </div>
+</div>
+
+<!-- ===== 관리자: PDF 업로드 ===== -->
+<div id="s-pdf" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goScreen(&#39;s-admin&#39;)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="hdr-title">의뢰서 업로드</div>
+  </div>
+  <div class="upload-zone" id="uz" onclick="document.getElementById(&#39;pdf-input&#39;).click()">
+    <div class="upload-zone-ico">📄</div>
+    <h2>PDF 파일 선택</h2>
+    <p>탭하거나 파일을 끌어다 놓으세요</p>
+    <p style="margin-top:4px;font-size:11px;color:#aaa">설치 의뢰서 PDF</p>
+    <input type="file" id="pdf-input" accept=".pdf">
+  </div>
+  <div class="pdf-prev" id="pdf-prev">
+    <div class="pdf-ico">📕</div>
+    <div><div class="pdf-fn" id="pdf-fn"></div><div class="pdf-fs" id="pdf-fs"></div></div>
+    <button class="pdf-rm" onclick="resetPdf()">✕</button>
+  </div>
+  <div class="parse-prog" id="parse-prog">
+    <div style="font-size:13px;font-weight:700" id="prog-label">파싱 중...</div>
+    <div class="prog-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+    <div class="prog-txt" id="prog-txt"></div>
+  </div>
+  <div class="tech-list" id="pdf-result-list"></div>
+</div>
+
+<!-- ===== 관리자: 검수 상세 ===== -->
+<div id="s-detail" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" id="detail-back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="hdr-title" id="detail-title">검수</div>
+    <div class="chip chip-blue" id="detail-chip"></div>
+  </div>
+  <div class="detail-hero">
+    <div class="detail-top">
+      <div class="detail-ava" id="d-ava"></div>
+      <div><div class="detail-name" id="d-name"></div><div class="detail-date" id="d-date"></div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-n b" id="d-total">0</div><div class="stat-l">전체</div></div>
+      <div class="stat-box"><div class="stat-n g" id="d-done">0</div><div class="stat-l">검수완료</div></div>
+      <div class="stat-box"><div class="stat-n r" id="d-remain">0</div><div class="stat-l">미검수</div></div>
+    </div>
+  </div>
+  <div id="reject-banner"></div>
+  <div class="model-list" id="model-list"></div>
+  <div style="height:16px"></div>
+  <button class="btn-reject" id="reject-btn" onclick="openRejectModal()">🚫 검수 거부</button>
+  <button class="btn-primary btn-green" id="complete-btn" onclick="completeInspection()">검수 완료 처리</button>
+</div>
+
+<!-- ===== 관리자: 완료 내역 ===== -->
+<div id="s-history" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goScreen(&#39;s-admin&#39;)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="hdr-title">완료 내역</div>
+    <div class="chip chip-green" id="hist-cnt"></div>
+  </div>
+  <div style="padding:12px 18px 10px;font-size:12px;color:var(--gray-400)">완료 처리된 검수는 <strong>3일간</strong> 보관됩니다.</div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- ===== 기사: 메인 ===== -->
+<div id="s-tech-main" class="scr">
+  <div class="t-hero">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h1 id="tech-greeting">안녕하세요!</h1>
+        <p id="tech-sub">이름을 선택해 의뢰서를 확인하세요</p>
+      </div>
+      <button onclick="goMode()" style="border:none;background:none;font-size:12px;color:var(--gray-400);cursor:pointer;padding:6px">모드변경</button>
+    </div>
+  </div>
+  <div style="padding:14px 18px 8px"><div class="sec-lbl">이름 선택</div></div>
+  <div class="tech-name-sel" id="tech-name-grid"></div>
+  <div class="t-job-list">
+    <div class="sec-lbl" style="margin-top:16px" id="tech-job-lbl">내 의뢰서</div>
+    <div id="tech-job-list"></div>
+  </div>
+</div>
+
+<!-- ===== 기사: 검수 ===== -->
+<div id="s-tech-detail" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goScreen(&#39;s-tech-main&#39;)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="hdr-title" id="td-title">검수</div>
+    <div class="chip chip-green" id="td-chip"></div>
+  </div>
+  <div class="detail-hero">
+    <div class="detail-top">
+      <div class="detail-ava green" id="td-ava"></div>
+      <div><div class="detail-name" id="td-name"></div><div class="detail-date" id="td-date"></div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-n b" id="td-total">0</div><div class="stat-l">전체</div></div>
+      <div class="stat-box"><div class="stat-n g" id="td-done">0</div><div class="stat-l">완료</div></div>
+      <div class="stat-box"><div class="stat-n r" id="td-remain">0</div><div class="stat-l">남음</div></div>
+    </div>
+  </div>
+  <div id="td-reject-banner"></div>
+  <div class="model-list" id="td-model-list"></div>
+  <div style="height:16px"></div>
+  <button class="btn-reject" id="td-reject-btn" onclick="openRejectModal(&#39;tech&#39;)">🚫 검수 거부</button>
+  <button class="btn-primary btn-green" id="td-complete-btn" onclick="techComplete()">검수 완료 제출</button>
+  <!-- 스캔 FAB -->
+  <button class="scan-fab" id="scan-fab" onclick="openScan()" title="AI 모델 스캔">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+  </button>
+</div>
+
+
+<!-- ===== 카메라 스캔 모달 ===== -->
+<div class="scan-modal" id="scan-modal">
+  <div class="scan-hdr">
+    <button class="scan-back-btn" onclick="closeScan()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="scan-hdr-title">📸 모델 스캔</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.5)">AI 인식</div>
+  </div>
+  <div class="scan-video-wrap">
+    <video id="scan-video" playsinline="" autoplay="" muted=""></video>
+    <div class="scan-overlay-ui">
+      <div class="scan-frame-box"></div>
+      <div class="scan-hint">라벨 전체가 프레임 안에 들어오도록<br>카메라를 맞춰주세요</div>
+    </div>
+    <div class="scan-loading" id="scan-loading">
+      <div class="scan-spinner"></div>
+      <div class="scan-loading-txt">AI가 모델명을 읽는 중...</div>
+    </div>
+  </div>
+  <div class="scan-bottom">
+    <button class="scan-shutter" onclick="captureAndRecognize()" id="scan-shutter-btn">📷</button>
+    <div class="scan-result-box" id="scan-result-box">
+      <div class="scan-result-label">인식된 모델명</div>
+      <div class="scan-result-model" id="scan-result-model">—</div>
+      <div id="scan-result-match"></div>
+      <div class="scan-action-btns" id="scan-action-btns"></div>
+    </div>
+  </div>
+</div>
+<canvas id="scan-canvas" style="display:none"></canvas>
+<!-- TABBAR (관리자용) -->
+<div class="tabbar" id="admin-tabbar" style="display:none">
+  <button class="tab-btn on" id="tb-home" onclick="goScreen(&#39;s-admin&#39;)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>홈
+  </button>
+  <button class="tab-btn" id="tb-pdf" onclick="goScreen(&#39;s-pdf&#39;)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>업로드
+  </button>
+  <button class="tab-btn" id="tb-hist" onclick="goScreen(&#39;s-history&#39;)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>완료내역
+  </button>
+</div>
+
+
+<!-- ===== 검수거부 모달 ===== -->
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal-sheet">
+    <h3>🚫 검수 거부</h3>
+    <p>인수거부 또는 설치취소 사유를 입력해주세요.</p>
+    <select id="reject-preset" style="width:100%;height:40px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:0 12px;font-size:14px;margin-bottom:8px;font-family:inherit">
+      <option value="">— 사유 선택 (선택사항) —</option>
+      <option value="인수거부">인수거부</option>
+      <option value="설치취소">설치취소</option>
+      <option value="고객 부재">고객 부재</option>
+      <option value="설치 환경 불가">설치 환경 불가</option>
+      <option value="제품 불량">제품 불량</option>
+      <option value="배송 오류">배송 오류</option>
+    </select>
+    <textarea class="modal-textarea" id="reject-reason-input" placeholder="상세 사유를 입력하세요..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeRejectModal()">취소</button>
+      <button class="modal-confirm" onclick="submitReject()">거부 처리</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// 모바일 터치 최적화 - 300ms 딜레이 제거
+// ══════════════════════════════════════════
+(function(){
+  // touchstart 에서 즉시 click 발생시켜 300ms 딜레이 제거
+  let lastTouch = 0;
+  document.addEventListener('touchstart', function(e){
+    const now = Date.now();
+    if(now - lastTouch < 300){ e.preventDefault(); return; } // 더블탭 줌 방지
+    lastTouch = now;
+    const el = e.target.closest('[onclick], button, a, .mode-card, .rec-item, .tech-card, .model-row, .name-btn, .t-job-card, .qk-card, .search-row, .modal-row');
+    if(!el) return;
+    // 스크롤 중에는 무시
+    let moved = false;
+    const onMove = ()=>{ moved=true; };
+    const onEnd = ()=>{
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      if(!moved){
+        e.preventDefault();
+        el.click();
+      }
+    };
+    document.addEventListener('touchmove', onMove, {passive:true});
+    document.addEventListener('touchend', onEnd);
+  }, {passive:false});
+})();
+
+// ══════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════
+let CLAUDE_KEY = localStorage.getItem('claude_api_key') || '';
+const SB_URL = 'https://yfposuvjbdwzpbgrznbh.supabase.co';
+const SB_KEY = 'sb_publishable_22owTdzkaJF_7NsMEg-SoQ_63tMGDY7';
+
+async function sb(method, path, body){
+  const url = SB_URL + '/rest/v1/' + path;
+  const headers = {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+  // POST: 생성된 row 반환 / PATCH,DELETE: 변경된 row 반환
+  if(method === 'POST')   headers['Prefer'] = 'return=representation';
+  if(method === 'PATCH')  headers['Prefer'] = 'return=representation';
+  if(method === 'DELETE') headers['Prefer'] = 'return=representation';
+
+  let res;
+  try {
+    res = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch(netErr) {
+    throw new Error('네트워크 오류: ' + netErr.message + '\n\n이 파일을 브라우저에서 직접 열어서 사용해주세요 (Claude 미리보기에서는 외부 API 호출이 차단됩니다).');
+  }
+  if(!res.ok){
+    const err = await res.text();
+    let msg = '';
+    try { msg = JSON.parse(err).message || err; } catch(e) { msg = err; }
+    throw new Error(`Supabase 오류 [${res.status}]: ${msg}`);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+// Upsert: conflict 시 update (신규/업데이트 한번에)
+async function sbUpsert(table, rows, onConflict){
+  const url = SB_URL + '/rest/v1/' + table;
+  const headers = {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Prefer': `return=representation,resolution=merge-duplicates`
+  };
+  let res;
+  try{
+    res = await fetch(url + `?on_conflict=${onConflict}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(rows)
+    });
+  } catch(netErr){
+    throw new Error('네트워크 오류: ' + netErr.message);
+  }
+  if(!res.ok){
+    const err = await res.text();
+    let msg=''; try{ msg=JSON.parse(err).message||err; }catch(e){ msg=err; }
+    throw new Error(`Supabase upsert 오류 [${res.status}]: ${msg}`);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+// ══════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+if(pdfjsLib.VerbosityLevel) pdfjsLib.verbosity = pdfjsLib.VerbosityLevel.ERRORS;
+
+// ══════════════════════════════════════════
+// 기사 목록
+// ══════════════════════════════════════════
+const TECH_LIST = [
+  "강정환","강진수","공병철","국승욱","김영금","김응돌","김지흥","김태근",
+  "김남률","민지운","박건우","박은철","박종덕","박종선","배철옥","백인수",
+  "손성훈","안종수","양호진","우준혁","유경민","이동하","이대흥","이성우",
+  "이승호","이시복","이용신","이철훈","전용호","정권","정승백","정승영",
+  "정한주","정호진","조운형","주세환","주병윤","진호관","채건병","천명석",
+  "최병일","최정규","홍창표"
+];
+const TECH_SET = new Set(TECH_LIST);
+function normalizeTech(s){
+  if(!s) return '';
+  const c = s.replace(/[s\d선임]+$/, '').trim();
+  return TECH_SET.has(c) ? c : '';
+}
+
+// ══════════════════════════════════════════
+// 상태
+// ══════════════════════════════════════════
+let currentMode = ''; // 'admin' | 'tech'
+let currentJobId = null;
+let currentJobModels = [];
+let fromScreen = '';
+let selectedTech = '';
+let techJobs = [];
+let currentJobStatus = 'active';
+let currentJobRejectReason = '';
+let rejectModalMode = 'admin'; // 'admin' | 'tech'
+
+// ══════════════════════════════════════════
+// 로딩
+// ══════════════════════════════════════════
+function showLoading(txt='처리 중...'){
+  document.getElementById('loading-txt').textContent = txt;
+  document.getElementById('loading').style.display='flex';
+}
+function hideLoading(){ document.getElementById('loading').style.display='none'; }
+
+// ══════════════════════════════════════════
+// Toast
+// ══════════════════════════════════════════
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+// ══════════════════════════════════════════
+// 모드 진입
+// ══════════════════════════════════════════
+function enterMode(mode){
+  currentMode = mode;
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('admin-tabbar').style.display = mode==='admin' ? 'flex' : 'none';
+  if(mode==='admin'){
+    document.getElementById('s-admin').classList.add('on');
+    document.getElementById('admin-date').textContent = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long'}) + ' · 다온ENG';
+    loadAdminJobs();
+  } else {
+    document.getElementById('s-tech-main').classList.add('on');
+    renderTechNameGrid();
+  }
+}
+function goMode(){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-mode').classList.add('on');
+  document.getElementById('admin-tabbar').style.display='none';
+}
+
+// ══════════════════════════════════════════
+// 화면 전환
+// ══════════════════════════════════════════
+const ADMIN_TAB_MAP = {'s-admin':'tb-home','s-pdf':'tb-pdf','s-history':'tb-hist'};
+function goScreen(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  // tabbar
+  if(currentMode==='admin'){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+    const tb = ADMIN_TAB_MAP[id];
+    if(tb) document.getElementById(tb)?.classList.add('on');
+  }
+  if(id==='s-history') loadHistory();
+  if(id==='s-admin') loadAdminJobs();
+}
+
+// ══════════════════════════════════════════
+// ── 관리자: 의뢰서 목록 로드 ──
+// ══════════════════════════════════════════
+async function loadAdminJobs(showRefresh=false){
+  if(showRefresh) showToast('🔄 동기화 중...');
+  try{
+    const jobs = await sb('GET','jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&order=created_at.desc');
+    renderAdminJobList(jobs||[]);
+    document.getElementById('admin-total-cnt').textContent = `총 ${(jobs||[]).length}건`;
+    if(showRefresh) showToast('✅ 동기화 완료');
+  } catch(e){
+    console.error(e);
+    document.getElementById('admin-job-list').innerHTML =
+      `<div class="empty" style="color:var(--red)">
+        ⚠️ 연결 실패<br>
+        <span style="font-size:11px;color:var(--gray-400);word-break:break-all">${e.message}</span><br><br>
+        <strong style="font-size:12px">이 파일을 다운로드 후<br>브라우저에서 직접 열어주세요</strong>
+      </div>`;
+  }
+}
+
+function renderAdminJobList(jobs){
+  const el = document.getElementById('admin-job-list');
+  if(!jobs.length){
+    el.innerHTML='<div class="empty">등록된 의뢰서가 없습니다.<br>PDF를 업로드해 주세요.</div>';
+    return;
+  }
+  el.innerHTML = jobs.map(j=>{
+    const isRejected = j.status==='rejected';
+    const done = (j.models_data||[]).filter(m=>m.checked).length;
+    const total = (j.models_data||[]).length;
+    const dotClass = isRejected ? 'dot-r' : done===total&&total>0 ? 'dot-g' : done>0 ? 'dot-a' : 'dot-r';
+    return `<div class="rec-item ${isRejected?'rejected':''}" onclick="openAdminDetail('${j.id}','s-admin')">
+      <div class="dot ${dotClass}"></div>
+      <div class="rec-info">
+        <div class="rec-name">${j.tech_name} 기사 ${isRejected?'<span style="font-size:11px;color:var(--red);font-weight:700">🚫 거부</span>':''}</div>
+        <div class="rec-sub">${j.job_date} · ${isRejected?`거부: ${j.reject_reason||'사유없음'}`:`${total}개 자재`}</div>
+      </div>
+      <div class="rec-cnt" style="${isRejected?'color:var(--red)':''}">${isRejected?'거부':done+'/'+total}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// ── 관리자: 검수 상세 열기 ──
+// ══════════════════════════════════════════
+async function openAdminDetail(jobId, from){
+  showLoading('불러오는 중...');
+  fromScreen = from;
+  try{
+    const jobs = await sb('GET',`jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&id=eq.${jobId}`);
+    if(!jobs||!jobs.length){ showToast('의뢰서를 찾을 수 없습니다'); hideLoading(); return; }
+    const j = jobs[0];
+    currentJobId = j.id;
+    currentJobModels = (j.models_data||[]).map((m,i)=>({...m, _idx:i}));
+    currentJobStatus = j.status||'active';
+    currentJobRejectReason = j.reject_reason||'';
+
+    document.getElementById('detail-back').onclick = ()=>goScreen(from);
+    document.getElementById('detail-title').textContent = j.tech_name+' 검수';
+    document.getElementById('d-ava').textContent = j.tech_name.slice(-2);
+    document.getElementById('d-name').textContent = j.tech_name+' 기사';
+    document.getElementById('d-date').textContent = j.job_date+' 의뢰서';
+    renderRejectBanner('reject-banner', j);
+    renderAdminModels();
+    hideLoading();
+    goScreen('s-detail');
+  } catch(e){
+    hideLoading(); showToast('오류: '+e.message);
+  }
+}
+
+function renderAdminModels(){
+  const done = currentJobModels.filter(m=>m.checked).length;
+  const total = currentJobModels.length;
+  document.getElementById('d-total').textContent = total;
+  document.getElementById('d-done').textContent = done;
+  document.getElementById('d-remain').textContent = total-done;
+  document.getElementById('detail-chip').textContent = done+'/'+total;
+  const isRej = currentJobStatus==='rejected';
+  const btn = document.getElementById('complete-btn');
+  const rbtn = document.getElementById('reject-btn');
+  btn.disabled = done<total || isRej;
+  btn.textContent = isRej ? '🚫 거부된 의뢰서' : done===total ? '✅ 검수 완료 처리' : `검수 완료 처리 (${total-done}개 미완료)`;
+  if(rbtn){ rbtn.style.display = isRej ? 'none' : 'block'; }
+  document.getElementById('model-list').innerHTML = currentJobModels.map((m,i)=>`
+    <div class="model-row ${m.checked?'done':''}" onclick="adminToggle(${i})">
+      <div class="chk ${m.checked?'done':''}">${m.checked?'✓':''}</div>
+      <div class="model-info">
+        <div class="model-nm ${m.checked?'done':''}">${m.name}</div>
+        <div class="model-ord">${m.order_id||m.orderId||'주문번호 없음'}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="model-qty">× ${m.qty}</div>
+        ${m.checked?`<div class="qty-ok">✓ 확인</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function adminToggle(idx){
+  const newVal = !currentJobModels[idx].checked;
+  currentJobModels[idx].checked = newVal;
+  currentJobModels[idx].checked_at = newVal ? new Date().toISOString() : null;
+  renderAdminModels();
+  try{
+    // models_data 전체를 한 번에 PATCH (models 테이블 호출 없음)
+    await sb('PATCH',`jobs?id=eq.${currentJobId}`,{
+      models_data: currentJobModels.map(m=>({
+        name:m.name, qty:m.qty, order_id:m.order_id||m.orderId||null,
+        checked:m.checked, checked_at:m.checked_at||null
+      }))
+    });
+  } catch(e){
+    currentJobModels[idx].checked = !newVal;
+    renderAdminModels();
+    showToast('저장 실패: '+e.message);
+  }
+}
+
+async function completeInspection(){
+  const done = currentJobModels.filter(m=>m.checked).length;
+  if(done < currentJobModels.length){ showToast('모든 자재를 검수 완료해야 합니다'); return; }
+  showLoading('완료 처리 중...');
+  try{
+    // history 저장
+    const jobs = await sb('GET',`jobs?select=tech_name,job_date&id=eq.${currentJobId}`);
+    const j = jobs[0];
+    await sb('POST','history',{
+      tech_name: j.tech_name,
+      job_date: j.job_date,
+      models: currentJobModels.map(m=>({name:m.name,qty:m.qty,order_id:m.order_id||m.orderId||null})),
+      completed_at: new Date().toISOString()
+    });
+    // job 삭제 (models_data는 jobs 컬럼이므로 함께 삭제)
+    await sb('DELETE',`jobs?id=eq.${currentJobId}`);
+    hideLoading();
+    showToast('✅ 검수 완료! 내역에 저장됐습니다');
+    goScreen('s-history');
+  } catch(e){
+    hideLoading(); showToast('오류: '+e.message);
+  }
+}
+
+// ══════════════════════════════════════════
+// ── 관리자: 검색 ──
+// ══════════════════════════════════════════
+const srch = document.getElementById('srch');
+const drop  = document.getElementById('srch-drop');
+srch.addEventListener('input', async function(){
+  const q = this.value.trim();
+  if(!q){ drop.style.display='none'; return; }
+  const matches = TECH_LIST.filter(n=>n.includes(q));
+  if(!matches.length){ drop.style.display='none'; return; }
+  // DB에서 해당 기사 의뢰서 확인
+  try{
+    const jobs = await sb('GET',`jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&tech_name=in.(${matches.map(n=>`"${n}"`).join(',')})`);
+    drop.style.display = 'block';
+    drop.innerHTML = matches.map(name=>{
+      const j = (jobs||[]).find(x=>x.tech_name===name);
+      const done = j ? (j.models_data||[]).filter(m=>m.checked).length : 0;
+      const total = j ? (j.models_data||[]).length : 0;
+      return `<div class="search-row" onclick="srchSelect('${j?.id||''}','${name}')">
+        <div class="ava ${j?'green':''}">${name.slice(-2)}</div>
+        <div>
+          <div style="font-size:14px;font-weight:700">${name} 기사</div>
+          <div style="font-size:11px;color:var(--gray-400)">${j?`의뢰서 있음 · ${done}/${total}`:' 의뢰서 없음'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ drop.style.display='none'; }
+});
+function srchSelect(jobId, name){
+  srch.value=''; drop.style.display='none';
+  if(jobId) openAdminDetail(jobId,'s-admin');
+  else showToast(name+' 기사님 의뢰서가 없습니다');
+}
+document.addEventListener('click',e=>{ if(!e.target.closest('.search-box')) drop.style.display='none'; });
+
+// ══════════════════════════════════════════
+// ── 관리자: 완료 내역 ──
+// ══════════════════════════════════════════
+async function loadHistory(){
+  const el = document.getElementById('hist-list');
+  el.innerHTML='<div class="empty">불러오는 중...</div>';
+  try{
+    const cutoff = new Date(Date.now()-3*86400000).toISOString();
+    const hist = await sb('GET',`history?select=*&completed_at=gte.${cutoff}&order=completed_at.desc`);
+    document.getElementById('hist-cnt').textContent = (hist||[]).length+'건';
+    if(!hist||!hist.length){ el.innerHTML='<div class="empty">완료된 검수 내역이 없습니다</div>'; return; }
+    const now = Date.now();
+    el.innerHTML = (hist||[]).map(h=>{
+      const elapsed = now - new Date(h.completed_at).getTime();
+      const daysLeft = Math.ceil((3*86400000-elapsed)/86400000);
+      const dt = new Date(h.completed_at);
+      const dtStr = `${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')} 완료`;
+      const models = h.models||[];
+      return `<div class="hist-item">
+        <div class="hist-top">
+          <div class="hist-ava">${h.tech_name.slice(-2)}</div>
+          <div><div class="hist-name">${h.tech_name} 기사</div><div class="hist-dt">${dtStr} · ${models.length}개</div></div>
+          <div class="hist-exp">${daysLeft}일 후 삭제</div>
+        </div>
+        <div class="hist-tags">${models.map(m=>`<span class="hist-tag">${m.name}${m.qty>1?` ×${m.qty}`:''}</span>`).join('')}</div>
+      </div>`;
+    }).join('');
+  } catch(e){
+    el.innerHTML=`<div class="empty">불러오기 실패: ${e.message}</div>`;
+  }
+}
+
+// ══════════════════════════════════════════
+// ── PDF 파싱 ──
+// ══════════════════════════════════════════
+const MODEL_RE = /^[A-Z0-9][A-Z0-9\-\.]*\.(AKOR|AKORB|ASM|EKOR|BKOR|ASME|AKOR2)$/i;
+const ORDER_RE = /^(\d{9,}[\-\.\d]+|(?:LKR|TY|TR|TH|TM|MP)[A-Z\d\-\.]+)$/i;
+
+function parsePage(tokens){
+  let anchorIdx = -1;
+  for(let i=tokens.length-1;i>=0;i--){ if(tokens[i].includes('협력업체')){ anchorIdx=i; break; } }
+  if(anchorIdx<0) anchorIdx = tokens.findIndex(t=>t.includes('협력업체'));
+  if(anchorIdx<0) return null;
+  const sub = tokens.slice(anchorIdx+1);
+  const dateMatch = tokens.find(t=>/\d{4}년\s*\d{1,2}월\s*\d{1,2}일/.test(t));
+  const dateStr = dateMatch ? dateMatch.replace(/\s+/g,'') : '';
+  // 기사명: 끝에서 역방향 탐색
+  let techName = '';
+  for(let i=sub.length-1;i>=0;i--){
+    const n=normalizeTech(sub[i]);
+    if(n){ techName=n; break; }
+  }
+  if(!techName){
+    for(let i=sub.length-1;i>=0;i--){
+      const parts=sub[i].split(/\s+/);
+      for(const p of parts){ const n=normalizeTech(p); if(n){ techName=n; break; } }
+      if(techName) break;
+    }
+  }
+  if(!techName) return null;
+  // 모델명
+  const mpos=[];
+  sub.forEach((t,i)=>{ if(MODEL_RE.test(t)) mpos.push({t,i}); });
+  if(!mpos.length) return null;
+  let startI=mpos[0].i;
+  const first=mpos[0].t;
+  for(let k=1;k<mpos.length;k++){ if(mpos[k].t===first){ startI=mpos[k].i; break; } }
+  const models=[];
+  const seen=new Set();
+  for(let i=startI;i<sub.length;i++){
+    const t=sub[i];
+    if(!MODEL_RE.test(t)) continue;
+    if(seen.has(t)&&t===first) break;
+    seen.add(t);
+    let qty=1;
+    for(let j=i+1;j<Math.min(i+5,sub.length);j++){
+      const c=sub[j];
+      if(/^\d+$/.test(c)){ qty=parseInt(c); break; }
+      if(/배차/.test(c)){ const m=c.match(/(\d+)/); if(m) qty=parseInt(m[1]); break; }
+    }
+    models.push({name:t,qty,orderId:''});
+  }
+  if(!models.length) return null;
+  const orders=[];
+  for(let i=startI;i<sub.length;i++){
+    const t=sub[i];
+    if(ORDER_RE.test(t)&&!MODEL_RE.test(t)) orders.push(t);
+  }
+  models.forEach((m,i)=>{ if(orders[i]) m.orderId=orders[i]; });
+  return { tech:techName, date:dateStr, models };
+}
+
+const pdfInput=document.getElementById('pdf-input');
+pdfInput.addEventListener('change',function(){ if(this.files[0]) handlePdf(this.files[0]); });
+const uz=document.getElementById('uz');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{ e.preventDefault();uz.classList.remove('drag'); if(e.dataTransfer.files[0]) handlePdf(e.dataTransfer.files[0]); });
+
+function resetPdf(){
+  document.getElementById('pdf-prev').classList.remove('on');
+  uz.style.display='';
+  pdfInput.value='';
+  document.getElementById('parse-prog').classList.remove('on');
+  document.getElementById('pdf-result-list').innerHTML='';
+}
+
+// 동시 실행 수 제한
+async function parallelLimit(tasks, limit=6){
+  const results=new Array(tasks.length);
+  let idx=0;
+  async function worker(){
+    while(idx<tasks.length){ const i=idx++; results[i]=await tasks[i](); }
+  }
+  await Promise.all(Array.from({length:Math.min(limit,tasks.length)},worker));
+  return results;
+}
+
+async function handlePdf(file){
+  document.getElementById('pdf-fn').textContent=file.name;
+  document.getElementById('pdf-fs').textContent=(file.size/1024/1024).toFixed(2)+' MB';
+  document.getElementById('pdf-prev').classList.add('on');
+  uz.style.display='none';
+  document.getElementById('parse-prog').classList.add('on');
+
+  const t0=Date.now();
+  const setP=(pct,label,txt='')=>{
+    document.getElementById('prog-bar').style.width=pct+'%';
+    document.getElementById('prog-label').textContent=label;
+    document.getElementById('prog-txt').textContent=txt;
+  };
+
+  try{
+    setP(2,'📄 PDF 로드 중...','');
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    const totalPages=pdf.numPages;
+
+    // ── 1단계: 전체 페이지 Promise.all로 완전 병렬 파싱 ──
+    let doneCount=0;
+    setP(5,`📄 파싱 중 (0/${totalPages})`,'');
+    const pageResults=await Promise.all(
+      Array.from({length:totalPages},(_,i)=>
+        pdf.getPage(i+1)
+          .then(p=>p.getTextContent())
+          .then(tc=>{
+            doneCount++;
+            if(doneCount%5===0||doneCount===totalPages)
+              setP(5+Math.round(doneCount/totalPages*38),
+                `📄 파싱 중 (${doneCount}/${totalPages})`,'');
+            return parsePage(tc.items.map(it=>it.str.trim()).filter(s=>s.length>0));
+          })
+      )
+    );
+    const parsed=pageResults.filter(Boolean);
+    if(!parsed.length){ setP(100,'⚠️ 파싱 결과 없음','협력업체 섹션을 찾지 못했습니다.'); return; }
+
+    const tParse=((Date.now()-t0)/1000).toFixed(1);
+    setP(44,`✅ ${parsed.length}건 파싱 (${tParse}초)`,`DB 저장 시작...`);
+
+    // ── 2단계: 기존 job 전체 조회 (1회) ──
+    const existJobs=await sb('GET','jobs?select=id,tech_name,job_date,status').then(r=>r||[]);
+    const existMap={};
+    existJobs.forEach(j=>{ existMap[j.tech_name+'|'+j.job_date]=j.id; });
+    setP(52,'🔍 중복 확인 완료','');
+
+    // ── 3단계: upsert로 신규/업데이트 한번에 처리 ──
+    // Supabase upsert: tech_name+job_date 기준으로 있으면 update, 없으면 insert
+    // → API 호출 횟수를 청크 수(100장 = 2~3번)로 줄임
+    const toModelsData = models => models.map(m=>({
+      name:m.name, qty:m.qty, order_id:m.orderId||null, checked:false, checked_at:null
+    }));
+
+    const UPSERT_CHUNK = 50;
+    let done = 0;
+    const upsertTasks = [];
+    for(let i=0; i<parsed.length; i+=UPSERT_CHUNK){
+      const chunk = parsed.slice(i, i+UPSERT_CHUNK);
+      upsertTasks.push(async()=>{
+        const rows = await sbUpsert('jobs',
+          chunk.map(j=>({
+            tech_name: j.tech,
+            job_date:  j.date,
+            models_data: toModelsData(j.models),
+            status: 'active'  // 재업로드시 거부 상태 초기화 방지하려면 제거 가능
+          })),
+          'tech_name,job_date' // conflict target
+        ) || [];
+        done += chunk.length;
+        setP(52+Math.round(done/parsed.length*46),
+          `💾 저장 중... (${done}/${parsed.length})`,
+          `총 ${parsed.length}건 upsert`);
+        return rows;
+      });
+    }
+    const upsertResults = await parallelLimit(upsertTasks, 6);
+    const newJobRows = upsertResults.flat().filter(Boolean);
+
+    // job_id 맵: upsert 결과 + 기존 existMap 합산
+    const jobIdMap = {...existMap};
+    newJobRows.forEach(r=>{ jobIdMap[r.tech_name+'|'+r.job_date]=r.id; });
+    // upsert가 기존 row를 반환 안 할 경우 existMap으로 보완
+    parsed.forEach(j=>{
+      const k=j.tech+'|'+j.date;
+      if(!jobIdMap[k]) jobIdMap[k]=existMap[k];
+    });
+
+    const totalModels=parsed.reduce((s,j)=>s+j.models.length,0);
+    const elapsed=((Date.now()-t0)/1000).toFixed(1);
+    setP(100,`✅ ${parsed.length}건 / ${totalModels}개 자재`,
+      `총 ${elapsed}초 완료`);
+    renderPdfResult(parsed, jobIdMap);
+    showToast(`✅ ${parsed.length}건 완료 (${elapsed}초)`);
+
+  } catch(e){
+    setP(100,'❌ 오류',e.message);
+    console.error(e);
+  }
+}
+
+async function renderPdfResult(parsed, jobIdMap){
+  const el=document.getElementById('pdf-result-list');
+  if(!parsed.length){ el.innerHTML='<div class="empty">추출된 의뢰서가 없습니다</div>'; return; }
+  el.innerHTML=
+    `<div style="padding:0 0 10px;font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase">${parsed.length}건 추출 — 탭하여 검수 시작</div>`+
+    parsed.map(j=>{
+      const jobId = jobIdMap ? jobIdMap[j.tech+'|'+j.date] : null;
+      const total=j.models.length;
+      return `<div class="tech-card" onclick="${jobId?`openAdminDetail('${jobId}','s-pdf')`:'void(0)'}">
+        <div class="tech-card-head">
+          <div class="tc-ava">${j.tech.slice(-2)}</div>
+          <div><div class="tc-name">${j.tech} 기사</div><div class="tc-meta">${total}개 자재 · ${j.date}</div></div>
+          <div class="tc-badge"><div class="tc-total">${total}</div><div class="tc-done">0 완료</div></div>
+        </div>
+        <div class="tc-prog"><div class="tc-prog-fill" style="width:0%"></div></div>
+      </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════
+// ── 기사 모드 ──
+// ══════════════════════════════════════════
+function renderTechNameGrid(){
+  const grid=document.getElementById('tech-name-grid');
+  grid.innerHTML=TECH_LIST.map(n=>`<button class="name-btn" onclick="selectTech('${n}')">${n}</button>`).join('');
+}
+
+async function selectTech(name){
+  selectedTech=name;
+  document.querySelectorAll('.name-btn').forEach(b=>b.classList.toggle('selected',b.textContent===name));
+  document.getElementById('tech-greeting').textContent=name+' 기사님';
+  document.getElementById('tech-sub').textContent='오늘의 의뢰서';
+  document.getElementById('tech-job-lbl').style.display='block';
+  const el=document.getElementById('tech-job-list');
+  el.innerHTML='<div class="empty">불러오는 중...</div>';
+  try{
+    const jobs=await sb('GET',`jobs?select=id,tech_name,job_date,models_data,status,reject_reason,rejected_at&tech_name=eq.${encodeURIComponent(name)}&order=created_at.desc`);
+    techJobs=jobs||[];
+    if(!techJobs.length){ el.innerHTML='<div class="empty">배정된 의뢰서가 없습니다.<br>관리자에게 문의하세요.</div>'; return; }
+    el.innerHTML=techJobs.map((j,i)=>{
+      const isRejected=j.status==='rejected';
+      const done=(j.models_data||[]).filter(m=>m.checked).length;
+      const total=(j.models_data||[]).length;
+      const pct=total?Math.round(done/total*100):0;
+      return `<div class="t-job-card ${isRejected?'rejected':''}" onclick="openTechDetail(${i})" style="${isRejected?'background:var(--red-lt);border-color:#F5B8B8':''}">
+        <div class="t-job-head">
+          <div class="t-job-name">${j.job_date} ${isRejected?'<span style="color:var(--red);font-size:12px">🚫 거부됨</span>':''}</div>
+          <div class="chip ${isRejected?'chip-red':done===total&&total>0?'chip-green':'chip-amber'}" style="${isRejected?'background:var(--red-lt);color:var(--red)':''}">${isRejected?'거부':done+'/'+total}</div>
+        </div>
+        <div class="t-job-progress"><div class="t-job-fill" style="width:${pct}%;background:${isRejected?'var(--red)':'var(--green)'}"></div></div>
+        <div class="t-job-meta">${isRejected?`거부 사유: ${j.reject_reason||'없음'}`:`${total}개 자재 · ${done===total&&total>0?'✅ 검수완료':'검수 진행 중'}`}</div>
+      </div>`;
+    }).join('');
+  } catch(e){
+    el.innerHTML=`<div class="empty">불러오기 실패: ${e.message}</div>`;
+  }
+}
+
+function openTechDetail(idx){
+  const j=techJobs[idx];
+  currentJobId=j.id;
+  currentJobModels=(j.models_data||[]).map(m=>({...m}));
+  currentJobStatus=j.status||'active';
+  currentJobRejectReason=j.reject_reason||'';
+  document.getElementById('td-title').textContent=j.tech_name+' 검수';
+  document.getElementById('td-ava').textContent=j.tech_name.slice(-2);
+  document.getElementById('td-name').textContent=j.tech_name+' 기사';
+  document.getElementById('td-date').textContent=j.job_date+' 의뢰서';
+  renderRejectBanner('td-reject-banner', j);
+  renderTechModels();
+  goScreen('s-tech-detail');
+}
+
+function renderTechModels(){
+  const done=currentJobModels.filter(m=>m.checked).length;
+  const total=currentJobModels.length;
+  document.getElementById('td-total').textContent=total;
+  document.getElementById('td-done').textContent=done;
+  document.getElementById('td-remain').textContent=total-done;
+  document.getElementById('td-chip').textContent=done+'/'+total;
+  const isRej=currentJobStatus==='rejected';
+  const btn=document.getElementById('td-complete-btn');
+  const rbtn=document.getElementById('td-reject-btn');
+  btn.disabled=done<total||isRej;
+  btn.textContent=isRej?'🚫 거부된 의뢰서':done===total?'✅ 검수 완료 제출':`검수 완료 제출 (${total-done}개 남음)`;
+  if(rbtn){ rbtn.style.display=isRej?'none':'block'; }
+  document.getElementById('td-model-list').innerHTML=currentJobModels.map((m,i)=>`
+    <div class="model-row ${m.checked?'done':''}" onclick="techToggle(${i})">
+      <div class="chk ${m.checked?'done':''}">${m.checked?'✓':''}</div>
+      <div class="model-info">
+        <div class="model-nm ${m.checked?'done':''}">${m.name}</div>
+        <div class="model-ord">${m.order_id||m.orderId||'주문번호 없음'}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="model-qty">× ${m.qty}</div>
+        ${m.checked?`<div class="qty-ok">✓ 확인</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function techToggle(idx){
+  const newVal=!currentJobModels[idx].checked;
+  currentJobModels[idx].checked=newVal;
+  currentJobModels[idx].checked_at=newVal?new Date().toISOString():null;
+  renderTechModels();
+  try{
+    await sb('PATCH',`jobs?id=eq.${currentJobId}`,{
+      models_data: currentJobModels.map(m=>({
+        name:m.name, qty:m.qty, order_id:m.order_id||m.orderId||null,
+        checked:m.checked, checked_at:m.checked_at||null
+      }))
+    });
+    showToast(newVal?'✅ 검수 확인':'↩ 검수 취소');
+  } catch(e){
+    currentJobModels[idx].checked=!newVal;
+    renderTechModels();
+    showToast('저장 실패: '+e.message);
+  }
+}
+
+
+// ══════════════════════════════════════════
+// ── 검수 거부 ──
+// ══════════════════════════════════════════
+function renderRejectBanner(elId, job){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  if(job.status!=='rejected'){ el.innerHTML=''; return; }
+  const dt=job.rejected_at?new Date(job.rejected_at):null;
+  const dtStr=dt?`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours()}:${String(dt.getMinutes()).padStart(2,'0')} 거부`:'';
+  el.innerHTML=`<div class="reject-banner">
+    <div class="reject-banner-title">🚫 검수 거부됨</div>
+    <div class="reject-banner-reason">${job.reject_reason||'사유 없음'}</div>
+    ${dtStr?`<div class="reject-banner-time">${dtStr}</div>`:''}
+  </div>`;
+}
+
+function openRejectModal(mode='admin'){
+  rejectModalMode=mode;
+  document.getElementById('reject-reason-input').value='';
+  document.getElementById('reject-preset').value='';
+  document.getElementById('reject-modal').classList.add('on');
+  setTimeout(()=>document.getElementById('reject-reason-input').focus(),100);
+}
+function closeRejectModal(){
+  document.getElementById('reject-modal').classList.remove('on');
+}
+// 프리셋 선택시 textarea에 자동 입력
+document.getElementById('reject-preset').addEventListener('change',function(){
+  if(this.value) document.getElementById('reject-reason-input').value=this.value;
+});
+
+async function submitReject(){
+  const reason=document.getElementById('reject-reason-input').value.trim();
+  if(!reason){ showToast('사유를 입력해주세요'); return; }
+  closeRejectModal();
+  showLoading('거부 처리 중...');
+  try{
+    await sb('PATCH',`jobs?id=eq.${currentJobId}`,{
+      status:'rejected',
+      reject_reason:reason,
+      rejected_at:new Date().toISOString()
+    });
+    currentJobStatus='rejected';
+    currentJobRejectReason=reason;
+    const fakeJob={status:'rejected',reject_reason:reason,rejected_at:new Date().toISOString()};
+    if(rejectModalMode==='admin'){
+      renderRejectBanner('reject-banner',fakeJob);
+      renderAdminModels();
+    } else {
+      renderRejectBanner('td-reject-banner',fakeJob);
+      renderTechModels();
+    }
+    hideLoading();
+    showToast('🚫 검수 거부 처리됐습니다');
+  } catch(e){
+    hideLoading(); showToast('오류: '+e.message);
+  }
+}
+
+
+// ══════════════════════════════════════════
+// ── AI 카메라 스캔 ──
+// ══════════════════════════════════════════
+let scanStream = null;
+let lastRecognizedModel = '';
+
+async function openScan(){
+  document.getElementById('scan-modal').classList.add('on');
+  document.getElementById('scan-result-box').classList.remove('on');
+  lastRecognizedModel = '';
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+    });
+    document.getElementById('scan-video').srcObject = scanStream;
+  } catch(e){
+    showToast('카메라 권한을 허용해주세요');
+    closeScan();
+  }
+}
+
+function closeScan(){
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  document.getElementById('scan-modal').classList.remove('on');
+}
+
+async function captureAndRecognize(){
+  const video = document.getElementById('scan-video');
+  const canvas = document.getElementById('scan-canvas');
+  const loading = document.getElementById('scan-loading');
+
+  // 캔버스에 현재 프레임 캡처
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+  // API 키 없으면 입력 요청
+  if(!CLAUDE_KEY){
+    const key = prompt('Claude API 키를 입력해주세요:\n(console.anthropic.com 에서 발급)');
+    if(!key){ showToast('API 키가 필요합니다'); return; }
+    CLAUDE_KEY = key.trim();
+    localStorage.setItem('claude_api_key', CLAUDE_KEY);
+  }
+
+  loading.classList.add('on');
+  document.getElementById('scan-shutter-btn').disabled = true;
+
+  try{
+    // 의뢰서 모델명 목록 구성
+    const modelList = currentJobModels.map(m=>m.name).join(', ');
+
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:200,
+        messages:[{
+          role:'user',
+          content:[
+            {
+              type:'image',
+              source:{ type:'base64', media_type:'image/jpeg', data:base64 }
+            },
+            {
+              type:'text',
+              text:`이 이미지에서 LG 에어컨 모델명을 찾아주세요.
+모델명 패턴: 영문+숫자 조합으로 끝에 .AKOR, .EKOR, .ASM 등이 붙습니다.
+예: FQ18GC1EAN.AKOR, SQ06GA1WAJ.AKOR, PQ061208C41.AKOR
+
+의뢰서의 모델 목록: ${modelList}
+
+응답 형식 (JSON만, 설명 없이):
+{"found":"인식된모델명","matched":"의뢰서에서일치하는모델명또는null","confidence":"high/medium/low"}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const txt = data.content?.[0]?.text || '{}';
+    let result = {};
+    try{ result = JSON.parse(txt.replace(/```json?|```/g,'')); }
+    catch(e){ result = {found: txt.trim().split('')[0], matched:null, confidence:'low'}; }
+
+    lastRecognizedModel = result.found || '';
+    showScanResult(result);
+
+  } catch(e){
+    showToast('인식 실패: ' + e.message);
+  } finally {
+    loading.classList.remove('on');
+    document.getElementById('scan-shutter-btn').disabled = false;
+  }
+}
+
+function showScanResult(result){
+  const box = document.getElementById('scan-result-box');
+  box.classList.add('on');
+  document.getElementById('scan-result-model').textContent = result.found || '인식 실패';
+
+  const matchEl = document.getElementById('scan-result-match');
+  const actEl = document.getElementById('scan-action-btns');
+
+  if(result.matched){
+    // 의뢰서 모델과 일치
+    const idx = currentJobModels.findIndex(m=>m.name===result.matched);
+    const alreadyChecked = idx>=0 && currentJobModels[idx].checked;
+    matchEl.innerHTML = `<span class="scan-result-match ok">✅ 의뢰서 일치: ${result.matched}</span>`;
+    if(alreadyChecked){
+      actEl.innerHTML = `<div style="text-align:center;color:rgba(255,255,255,.6);font-size:12px;padding:4px">이미 검수 완료된 모델입니다</div>
+        <button class="scan-action-btn retry" onclick="resetScanResult()">다시 찍기</button>`;
+    } else {
+      actEl.innerHTML = `
+        <button class="scan-action-btn retry" onclick="resetScanResult()">다시 찍기</button>
+        <button class="scan-action-btn confirm" onclick="confirmScanMatch(${idx})">✓ 검수 확인</button>`;
+    }
+  } else if(result.found){
+    // 인식은 됐지만 의뢰서에 없음
+    matchEl.innerHTML = `<span class="scan-result-match no">⚠️ 의뢰서에 없는 모델</span>`;
+    actEl.innerHTML = `<button class="scan-action-btn retry" style="grid-column:1/-1" onclick="resetScanResult()">다시 찍기</button>`;
+  } else {
+    matchEl.innerHTML = `<span class="scan-result-match no">인식 실패 — 다시 시도</span>`;
+    actEl.innerHTML = `<button class="scan-action-btn retry" style="grid-column:1/-1" onclick="resetScanResult()">다시 찍기</button>`;
+  }
+}
+
+function resetScanResult(){
+  document.getElementById('scan-result-box').classList.remove('on');
+  lastRecognizedModel = '';
+}
+
+async function confirmScanMatch(modelIdx){
+  if(modelIdx < 0) return;
+  closeScan();
+  await techToggle(modelIdx);
+  showToast('✅ ' + currentJobModels[modelIdx].name + ' 검수 완료!');
+}
+
+async function techComplete(){
+  const done=currentJobModels.filter(m=>m.checked).length;
+  if(done<currentJobModels.length){ showToast('모든 자재를 체크해야 제출할 수 있습니다'); return; }
+  showLoading('제출 중...');
+  try{
+    // history 저장
+    await sb('POST','history',{
+      tech_name:selectedTech,
+      job_date:techJobs.find(j=>j.id===currentJobId)?.job_date||'',
+      models:currentJobModels.map(m=>({name:m.name,qty:m.qty,order_id:m.order_id||m.orderId||null})),
+      completed_at:new Date().toISOString()
+    });
+    await sb('DELETE',`jobs?id=eq.${currentJobId}`);
+    hideLoading();
+    showToast('✅ 검수 완료! 관리자에게 전달됐습니다');
+    await selectTech(selectedTech);
+    goScreen('s-tech-main');
+  } catch(e){
+    hideLoading(); showToast('제출 실패: '+e.message);
+  }
+}
+
+// ══════════════════════════════════════════
+// 초기화
+// ══════════════════════════════════════════
+document.getElementById('admin-date') && (document.getElementById('admin-date').textContent='');
+</script>
+
+
+</body></html>
