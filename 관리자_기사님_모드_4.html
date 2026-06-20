@@ -1,0 +1,1070 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daon E.N.G 자재 검수 시스템</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f1f5f9; margin: 0; padding: 0; color: #1e293b; }
+        .screen { display: none; min-height: 100vh; }
+        .screen.active { display: block; }
+
+        /* ── 공통 ── */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+        .btn { width: 100%; padding: 13px; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-red { background: #dc2626; color: white; }
+        .btn-gray { background: #64748b; color: white; }
+        .btn-amber { background: #f59e0b; color: white; }
+        input[type=text], input[type=password] {
+            width: 100%; padding: 11px 14px; border: 1.5px solid #cbd5e1;
+            border-radius: 8px; font-size: 15px; margin-bottom: 10px;
+        }
+        input:focus { outline: none; border-color: #2563eb; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .badge-red { background: #fee2e2; color: #dc2626; }
+        .badge-gray { background: #f1f5f9; color: #475569; }
+
+        /* ── 로그인 ── */
+        #loginScreen { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); }
+        .login-box { max-width: 380px; margin: 0 auto; padding: 40px 20px; }
+        .login-logo { text-align: center; color: white; margin-bottom: 32px; }
+        .login-logo h1 { font-size: 24px; margin: 0 0 6px; }
+        .login-logo p { font-size: 13px; opacity: 0.8; margin: 0; }
+        .login-card { background: white; border-radius: 16px; padding: 28px; }
+        .login-card h2 { font-size: 18px; color: #1e3a8a; margin: 0 0 20px; text-align: center; }
+        .login-error { color: #dc2626; font-size: 13px; text-align: center; margin-top: 8px; }
+
+        /* ── 상단 헤더 ── */
+        .top-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .top-bar-title { font-size: 16px; font-weight: 800; color: #1e3a8a; }
+        .top-bar-user { font-size: 12px; color: #64748b; text-align: right; }
+        .logout-btn { padding: 6px 12px; background: #f1f5f9; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; color: #475569; font-weight: 600; }
+
+        /* ── 기사 화면 ── */
+        .order-card { background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .order-card:hover { border-color: #2563eb; background: #f8faff; }
+        .order-card.done { border-color: #16a34a; background: #f0fdf4; }
+        .order-title { font-size: 15px; font-weight: 800; color: #1e3a8a; margin-bottom: 4px; }
+        .order-meta { font-size: 12px; color: #64748b; }
+        .model-item { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .model-item.checked { text-decoration: line-through; color: #94a3b8; }
+        .page-ctrl { display: flex; gap: 8px; margin: 10px 0; }
+        .page-ctrl button { flex: 1; padding: 10px; background: #e2e8f0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        /* ── 카메라 ── */
+        #scanner-container, #photoContainer { display: none; border-radius: 10px; overflow: hidden; background: #000; margin-top: 10px; }
+        .scan-video { width: 100%; max-height: 300px; object-fit: cover; display: block; }
+        .scan-overlay { position: relative; background: #000; }
+        .scan-overlay::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 75%; height: 45%;
+            border: 3px solid #22c55e;
+            border-radius: 8px;
+            pointer-events: none;
+            box-shadow: 0 0 0 2000px rgba(0,0,0,0.3);
+        }
+        .scan-bottom { background: rgba(0,0,0,0.85); padding: 10px; }
+        .scan-hint { color: #94a3b8; font-size: 12px; text-align: center; margin-bottom: 8px; }
+        .scan-btns { display: flex; gap: 8px; }
+        .scan-capture-btn { flex: 2; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .scan-cancel-btn { flex: 1; padding: 12px; background: #475569; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+
+        /* ── 관리자 화면 ── */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+        .stat-box { background: white; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-num { font-size: 28px; font-weight: 900; color: #1e3a8a; }
+        .stat-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .tech-row { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+        .progress-fill.done { background: #16a34a; }
+        .tab-row { display: flex; gap: 6px; margin-bottom: 14px; }
+        .tab-btn { flex: 1; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: white; font-size: 13px; font-weight: 700; cursor: pointer; color: #64748b; }
+        .tab-btn.on { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+
+        /* ── 최고관리자 ── */
+        .company-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+        .company-name { font-size: 16px; font-weight: 800; color: #1e3a8a; margin-bottom: 8px; }
+
+        /* ── PDF 미리보기 ── */
+        #pdfCanvas { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+        /* ── 모달 ── */
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+        .modal-bg.on { display: flex; }
+        .modal-box { background: white; border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-title { font-size: 17px; font-weight: 800; }
+        .modal-close { background: #f1f5f9; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; }
+
+        /* ── 사진 미리보기 ── */
+        #photoPreview { display: none; margin-top: 10px; }
+        #capturedPhoto { width: 100%; border-radius: 8px; border: 2px solid #f59e0b; }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     로그인 화면
+════════════════════════════════ -->
+<div id="loginScreen" class="screen active">
+    <div class="login-box">
+        <div class="login-logo">
+            <h1>🔧 Daon E.N.G</h1>
+            <p>에어컨 자재 검수 시스템</p>
+        </div>
+        <div class="login-card">
+            <h2>로그인</h2>
+            <input type="text" id="loginName" placeholder="이름 입력">
+            <input type="password" id="loginPwd" placeholder="비밀번호 입력">
+            <button class="btn btn-primary" onclick="doLogin()">로그인</button>
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     기사님 화면
+════════════════════════════════ -->
+<div id="techScreen" class="screen">
+    <div class="top-bar">
+        <div class="top-bar-title">🔧 자재 검수</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="top-bar-user" id="techUserInfo"></div>
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="container">
+        <!-- 의뢰서 목록 -->
+        <div id="techOrderList">
+            <div style="text-align:center;color:#94a3b8;padding:40px;">의뢰서를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <!-- 의뢰서 상세 모달 -->
+    <div class="modal-bg" id="orderDetailModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="orderDetailTitle">의뢰서 1</span>
+                <button class="modal-close" onclick="closeOrderDetail()">✕</button>
+            </div>
+
+            <!-- PDF 이미지 -->
+            <div id="orderPdfImages" style="margin-bottom:14px;"></div>
+
+            <!-- 자재 목록 -->
+            <div class="card" style="margin-bottom:14px;">
+                <div style="font-weight:800;font-size:13px;color:#4f46e5;margin-bottom:8px;">[배정 자재 목록]</div>
+                <div id="orderModelList"></div>
+            </div>
+
+            <!-- 카메라 스캔 -->
+            <div class="card" style="border-left:5px solid #2563eb;margin-bottom:14px;">
+                <label style="font-weight:bold;display:block;margin-bottom:6px;color:#1e3a8a;">📸 스티커 스캔</label>
+                <button class="btn btn-primary" id="techStartScanBtn">📷 카메라 열기</button>
+                <div id="scanner-container">
+                    <div class="scan-overlay">
+                        <video id="scan-video" class="scan-video" autoplay playsinline muted></video>
+                    </div>
+                    <canvas id="scan-canvas" style="display:none"></canvas>
+                    <div class="scan-bottom">
+                        <div class="scan-hint">📦 초록 박스 안에 스티커 모델명을 맞춰주세요</div>
+                        <div class="scan-btns">
+                            <button class="scan-capture-btn" id="techCaptureBtn">📸 찍기</button>
+                            <button class="scan-cancel-btn" id="techStopScanBtn">✕ 취소</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="techOcrResult" style="margin-top:8px;font-size:13px;font-weight:bold;color:#475569;">스캔 대기 중...</div>
+            </div>
+
+            <!-- 수동 입력 -->
+            <div class="card" style="border-left:5px solid #16a34a;margin-bottom:14px;">
+                <label style="font-weight:bold;display:block;margin-bottom:6px;color:#15803d;">🔍 수동 확인</label>
+                <input type="text" id="techManualInput" placeholder="모델명 직접 입력">
+                <button class="btn btn-success" onclick="techCheckModel()">✅ 검수 확정</button>
+                <div id="techStatus" style="margin-top:8px;text-align:center;font-size:14px;"></div>
+            </div>
+
+            <!-- 검수 완료 사진 -->
+            <div id="techPhotoSection" style="display:none;">
+                <div class="card" style="border-left:5px solid #f59e0b;">
+                    <label style="font-weight:bold;display:block;margin-bottom:6px;color:#b45309;">📷 검수 완료 사진</label>
+                    <p style="font-size:13px;color:#64748b;margin:0 0 10px;">전체 자재를 한 화면에 모아두고 사진을 찍어주세요.</p>
+                    <button class="btn btn-amber" id="techStartPhotoBtn">📸 자재 전체 사진 촬영</button>
+                    <div id="photoContainer">
+                        <video id="photo-video" class="scan-video" autoplay playsinline muted></video>
+                        <div class="scan-bottom">
+                            <div class="scan-hint">📦 모든 자재가 화면에 보이도록 맞춰주세요</div>
+                            <div class="scan-btns">
+                                <button class="scan-capture-btn" id="techCapturePhotoBtn">📸 촬영</button>
+                                <button class="scan-cancel-btn" id="techCancelPhotoBtn">✕ 취소</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="photoPreview">
+                        <img id="capturedPhoto" style="width:100%;border-radius:8px;border:2px solid #f59e0b;margin-top:10px;">
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <button class="btn btn-success" id="techSavePhotoBtn">✅ 제출 완료</button>
+                            <button class="btn btn-gray" id="techRetakePhotoBtn">🔄 다시 찍기</button>
+                        </div>
+                    </div>
+                    <div id="techPhotoStatus" style="margin-top:8px;font-size:13px;font-weight:bold;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     관리자 화면
+════════════════════════════════ -->
+<div id="adminScreen" class="screen">
+    <div class="top-bar">
+        <div class="top-bar-title">📊 관리자</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="top-bar-user" id="adminUserInfo"></div>
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="tab-row">
+            <button class="tab-btn on" onclick="adminTab('dashboard')">📊 현황</button>
+            <button class="tab-btn" onclick="adminTab('upload')">📄 PDF 업로드</button>
+            <button class="tab-btn" onclick="adminTab('techs')">👷 기사 관리</button>
+        </div>
+
+        <!-- 현황 탭 -->
+        <div id="adminDashboard">
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-num" id="statTotal">-</div>
+                    <div class="stat-label">전체 의뢰</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#16a34a" id="statDone">-</div>
+                    <div class="stat-label">검수 완료</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#dc2626" id="statPending">-</div>
+                    <div class="stat-label">미완료</div>
+                </div>
+            </div>
+            <div id="adminTechStatus"></div>
+        </div>
+
+        <!-- PDF 업로드 탭 -->
+        <div id="adminUpload" style="display:none;">
+            <div class="card">
+                <label style="font-weight:bold;display:block;margin-bottom:8px;">📄 설치의뢰서 PDF 등록</label>
+                <input type="file" id="adminPdfFile" accept="application/pdf" style="width:100%;font-size:13px;margin-bottom:10px;">
+                <div id="adminUploadStatus" style="font-size:13px;color:#475569;margin-bottom:10px;"></div>
+                <button class="btn btn-primary" onclick="adminUploadPdf()">📤 업로드 및 배분</button>
+            </div>
+        </div>
+
+        <!-- 기사 관리 탭 -->
+        <div id="adminTechs" style="display:none;">
+            <div class="card">
+                <div style="font-weight:bold;margin-bottom:10px;">👷 기사님 계정 추가</div>
+                <input type="text" id="newTechName" placeholder="기사님 이름">
+                <input type="password" id="newTechPwd" placeholder="비밀번호">
+                <button class="btn btn-primary" onclick="addTech()">➕ 추가</button>
+                <div id="addTechStatus" style="margin-top:8px;font-size:13px;"></div>
+            </div>
+            <div id="techList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     최고관리자 화면
+════════════════════════════════ -->
+<div id="superScreen" class="screen">
+    <div class="top-bar">
+        <div class="top-bar-title">👑 최고관리자</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="tab-row">
+            <button class="tab-btn on" onclick="superTab('companies')">🏢 회사 관리</button>
+            <button class="tab-btn" onclick="superTab('overview')">📊 전체 현황</button>
+        </div>
+
+        <!-- 회사 관리 탭 -->
+        <div id="superCompanies">
+            <div class="card">
+                <div style="font-weight:bold;margin-bottom:10px;">🏢 회사 추가</div>
+                <input type="text" id="newCompanyName" placeholder="회사명">
+                <input type="text" id="newAdminName" placeholder="관리자 이름">
+                <input type="password" id="newAdminPwd" placeholder="관리자 비밀번호">
+                <button class="btn btn-primary" onclick="addCompany()">➕ 회사 추가</button>
+                <div id="addCompanyStatus" style="margin-top:8px;font-size:13px;"></div>
+            </div>
+            <div id="companyList"></div>
+        </div>
+
+        <!-- 전체 현황 탭 -->
+        <div id="superOverview" style="display:none;">
+            <div id="superOverviewContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Supabase 설정 ──
+    const SUPABASE_URL = 'https://zsgexwuyrjankyojmvys.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzZ2V4d3V5cmphbmt5b2ptdnlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTg5MDMsImV4cCI6MjA5NzA5NDkwM30.SlY9C88IXX4PUY7Of1SfyOI1rQzbqYTSS06kAuJR70c';
+    const EDGE_FUNCTION_URL = SUPABASE_URL + '/functions/v1/claude-proxy';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    // ── 현재 로그인 정보 ──
+    let currentUser = null;
+
+    // ── 화면 전환 ──
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // ════════════════════════════════
+    // 로그인
+    // ════════════════════════════════
+    async function doLogin() {
+        const name = document.getElementById('loginName').value.trim();
+        const pwd = document.getElementById('loginPwd').value.trim();
+        if (!name || !pwd) { document.getElementById('loginError').textContent = '이름과 비밀번호를 입력해주세요.'; return; }
+
+        document.getElementById('loginError').textContent = '확인 중...';
+
+        const { data: rows, error } = await sb.from('users')
+            .select('*, companies(name)')
+            .eq('name', name)
+            .eq('password', pwd);
+
+        if (error || !rows || rows.length === 0) {
+            document.getElementById('loginError').textContent = '❌ 이름 또는 비밀번호가 틀렸습니다.';
+            return;
+        }
+        const data = rows[0];
+
+        currentUser = data;
+
+        if (data.role === 'super') {
+            showScreen('superScreen');
+            loadSuperCompanies();
+        } else if (data.role === 'admin') {
+            document.getElementById('adminUserInfo').textContent = `${data.companies?.name} | ${data.name}`;
+            showScreen('adminScreen');
+            loadAdminDashboard();
+        } else {
+            document.getElementById('techUserInfo').textContent = `${data.companies?.name} | ${data.name} 기사님`;
+            showScreen('techScreen');
+            loadTechOrders();
+        }
+    }
+
+    document.getElementById('loginPwd').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+
+    function doLogout() {
+        currentUser = null;
+        document.getElementById('loginName').value = '';
+        document.getElementById('loginPwd').value = '';
+        document.getElementById('loginError').textContent = '';
+        showScreen('loginScreen');
+    }
+
+    // ════════════════════════════════
+    // 기사님 화면
+    // ════════════════════════════════
+    let currentOrder = null;
+    let currentOrderModels = [];
+    let checkedModels = new Set();
+    let scanStream = null, photoStream = null;
+
+    async function loadTechOrders() {
+        const { data, error } = await sb.from('orders')
+            .select('*')
+            .eq('tech_id', currentUser.id)
+            .order('order_num', { ascending: true });
+
+        const el = document.getElementById('techOrderList');
+        if (error || !data?.length) {
+            el.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:40px;">배정된 의뢰서가 없습니다.</div>`;
+            return;
+        }
+
+        el.innerHTML = data.map(order => {
+            const models = order.models_data || [];
+            const done = order.status === 'done';
+            return `<div class="order-card ${done ? 'done' : ''}" onclick="openOrderDetail('${order.id}')">
+                <div class="order-title">의뢰서 ${order.order_num}</div>
+                <div class="order-meta">${order.job_date} · 자재 ${models.length}개
+                    <span class="badge ${done ? 'badge-green' : 'badge-gray'}" style="float:right">
+                        ${done ? '✅ 완료' : '⏳ 대기'}
+                    </span>
+                </div>
+                ${!done ? `<div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    async function openOrderDetail(orderId) {
+        const { data: order } = await sb.from('orders').select('*').eq('id', orderId).single();
+        if (!order) return;
+
+        currentOrder = order;
+        currentOrderModels = (order.models_data || []).map(m => typeof m === 'string' ? { name: m, qty: 1 } : m);
+        // 가정설치매장품 제외
+        currentOrderModels = currentOrderModels.filter(m => !(m.name || m).includes('가정설치매장품'));
+        checkedModels = new Set();
+
+        // 기존 검수 내역 불러오기
+        const { data: done } = await sb.from('inspections')
+            .select('model_name').eq('order_id', orderId);
+        if (done) done.forEach(d => checkedModels.add(d.model_name));
+
+        document.getElementById('orderDetailTitle').textContent = `의뢰서 ${order.order_num}`;
+
+        // PDF 이미지
+        let pdfImages = order.pdf_images || [];
+        // jsonb가 문자열로 저장된 경우 파싱
+        if (typeof pdfImages === 'string') {
+            try { pdfImages = JSON.parse(pdfImages); } catch(e) { pdfImages = []; }
+        }
+        console.log('PDF 이미지:', pdfImages);
+        document.getElementById('orderPdfImages').innerHTML = pdfImages.length
+            ? pdfImages.map(url => `<img src="${url}" style="width:100%;border-radius:8px;margin-bottom:8px;border:1px solid #e2e8f0;" onerror="this.style.display='none'">`).join('')
+            : `<div style="color:#94a3b8;font-size:13px;text-align:center;padding:10px;">PDF 이미지 없음</div>`;
+
+        // 자재 목록
+        renderOrderModels();
+
+        document.getElementById('techOcrResult').innerHTML = '<span style="color:#64748b;">📸 카메라로 스티커를 촬영해 주세요.</span>';
+        document.getElementById('techStatus').innerHTML = '';
+        document.getElementById('techManualInput').value = '';
+        document.getElementById('techPhotoSection').style.display = 'block';  // 항상 표시
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('techPhotoStatus').textContent = '';
+
+        document.getElementById('orderDetailModal').classList.add('on');
+    }
+
+    function renderOrderModels() {
+        const total = currentOrderModels.length;
+        const doneCount = checkedModels.size;
+        const allModelNames = currentOrderModels.map(m => m.name || m);
+        const allDone = total > 0 && allModelNames.every(m => checkedModels.has(m));
+
+        document.getElementById('orderModelList').innerHTML = currentOrderModels.map(item => {
+            const model = item.name || item;
+            const qty = item.qty || 1;
+            const isDone = checkedModels.has(model);
+            const modelId = model.replace(/[^a-zA-Z0-9]/g, '');
+            return `<div id="tmodel-${modelId}" class="model-item ${isDone ? 'checked' : ''}">
+                • <b style="color:#b91c1c;">${model}</b>
+                <span style="float:right;">${isDone ? '✅' : `${qty}개`}</span>
+            </div>`;
+        }).join('');
+
+        document.getElementById('techStatus').innerHTML = allDone
+            ? `<span style="color:#16a34a;font-weight:bold;">🎉 전체 검수 완료!</span>`
+            : `<span style="color:#2563eb;font-weight:bold;">검수 대기 (${doneCount}/${total}개)</span>`;
+
+        document.getElementById('techPhotoSection').style.display = 'block'; // 항상 표시
+    }
+
+    function closeOrderDetail() {
+        document.getElementById('orderDetailModal').classList.remove('on');
+        stopScan(); stopPhotoScan();
+        loadTechOrders();
+    }
+
+    // 카메라 스캔
+    document.getElementById('techStartScanBtn').addEventListener('click', async function() {
+        document.getElementById('scanner-container').style.display = 'block';
+        try {
+            scanStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+            });
+            document.getElementById('scan-video').srcObject = scanStream;
+            await document.getElementById('scan-video').play();
+            document.getElementById('techOcrResult').innerHTML = '📦 초록 박스 안에 스티커를 맞추고 📸 찍기를 눌러주세요';
+        } catch(err) {
+            document.getElementById('techOcrResult').textContent = '❌ 카메라 실행 실패: ' + err.message;
+            document.getElementById('scanner-container').style.display = 'none';
+        }
+    });
+
+    document.getElementById('techCaptureBtn').addEventListener('click', async function() {
+        const video = document.getElementById('scan-video');
+        const canvas = document.getElementById('scan-canvas');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        // 3장 연속 촬영 떨림 보정
+        const frames = [];
+        for (let i = 0; i < 3; i++) {
+            await new Promise(r => setTimeout(r, i === 0 ? 0 : 300));
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            frames.push({ base64: canvas.toDataURL('image/jpeg', 0.95).split(',')[1], sharpness: calcSharpness(imageData) });
+        }
+        frames.sort((a, b) => b.sharpness - a.sharpness);
+
+        stopScan();
+        document.getElementById('techOcrResult').innerHTML = '🔍 AI 분석 중...';
+        await analyzeImage(frames[0].base64);
+    });
+
+    document.getElementById('techStopScanBtn').addEventListener('click', stopScan);
+
+    function stopScan() {
+        if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+        document.getElementById('scanner-container').style.display = 'none';
+    }
+
+    function calcSharpness(imageData) {
+        const data = imageData.data, w = imageData.width;
+        let sum = 0, count = 0;
+        const step = 10;
+        for (let i = w; i < data.length/4 - w; i += step) {
+            const idx = i*4;
+            const gray = 0.299*data[idx] + 0.587*data[idx+1] + 0.114*data[idx+2];
+            const grayUp = 0.299*data[idx-w*4] + 0.587*data[idx-w*4+1] + 0.114*data[idx-w*4+2];
+            const grayDn = 0.299*data[idx+w*4] + 0.587*data[idx+w*4+1] + 0.114*data[idx+w*4+2];
+            sum += Math.abs(2*gray - grayUp - grayDn);
+            count++;
+        }
+        return count > 0 ? sum/count : 0;
+    }
+
+    async function analyzeImage(base64) {
+        try {
+            const res = await fetch(EDGE_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+                body: JSON.stringify({ base64 })
+            });
+            const data = await res.json();
+            const annotations = data.responses?.[0]?.textAnnotations || [];
+            const fullText = annotations[0]?.description?.toUpperCase() || '';
+
+            // WAJ + 확장자 합치기
+            const processedText = fullText.replace(/([A-Z0-9]+WAJ)[\r\n\s]+(AKOR|BKOR|EKOR)/g, '$1.$2');
+
+            const MODEL_PATTERN = /(SQ|FQ|SW|FW|PQ|PW|PC|PS|PU|UU|PN)[A-Z0-9]{4,12}(?:\.[A-Z0-9]+)?|M-[A-Z0-9]+(?:\.[A-Z0-9]+)?/g;
+            const foundModels = processedText.match(MODEL_PATTERN) || [];
+
+            if (!foundModels.length) {
+                document.getElementById('techOcrResult').innerHTML = `❌ 인식 실패. 다시 시도해주세요.<br><small style="color:#94a3b8">${fullText.substring(0,80)}</small>`;
+                return;
+            }
+
+            // 정규화 후 매칭
+            let matchedCount = 0, notMatched = [];
+            foundModels.forEach(rawModel => {
+                const base = rawModel.split('.')[0];
+                const ext = rawModel.includes('.') ? rawModel.split('.')[1] : '';
+                const model = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+
+                const modelNames = currentOrderModels.map(m => m.name || m);
+                if (modelNames.includes(model) && !checkedModels.has(model)) {
+                    checkedModels.add(model);
+                    matchedCount++;
+                    // Supabase 저장
+                    // 이미 체크된 경우 저장 안 함 (checkedModels로 중복 방지)
+                    sb.from('inspections').insert({
+                        company_id: currentUser.company_id,
+                        order_id: currentOrder.id,
+                        tech_id: currentUser.id,
+                        model_name: model
+                    });
+                } else if (!currentOrderModels.includes(model)) {
+                    notMatched.push(model);
+                }
+            });
+
+            renderOrderModels();
+
+            let html = '';
+            if (matchedCount > 0) html += `<div style="color:#16a34a;font-weight:bold;">✅ ${matchedCount}개 검수 완료!</div>`;
+            if (notMatched.length > 0) html += `<div style="color:#94a3b8;font-size:12px;">의뢰서 외: ${notMatched.join(', ')}</div>`;
+            if (!matchedCount && !notMatched.length) html = '❌ 일치하는 모델 없음';
+            document.getElementById('techOcrResult').innerHTML = html;
+
+        } catch(err) {
+            document.getElementById('techOcrResult').innerHTML = '❌ 오류: ' + err.message;
+        }
+    }
+
+    // 수동 입력
+    async function techCheckModel() {
+        const rawInput = document.getElementById('techManualInput').value.trim().toUpperCase();
+        const base = rawInput.split('.')[0];
+        const ext = rawInput.includes('.') ? rawInput.split('.')[1] : '';
+        const model = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+
+        if (!model) { alert('모델명을 입력해주세요.'); return; }
+
+        const modelNames2 = currentOrderModels.map(m => m.name || m);
+        if (modelNames2.includes(model)) {
+            if (!checkedModels.has(model)) {
+                checkedModels.add(model);
+                const { error } = await sb.from('inspections').insert({
+                    company_id: currentUser.company_id,
+                    order_id: currentOrder.id,
+                    tech_id: currentUser.id,
+                    model_name: model
+                });
+                if (error) {
+                    console.error('저장 실패:', error);
+                    document.getElementById('techStatus').innerHTML = `<span style="color:#dc2626;">❌ 저장 실패: ${error.message}</span>`;
+                    checkedModels.delete(model);
+                    return;
+                }
+            }
+            renderOrderModels();
+            document.getElementById('techManualInput').value = '';
+        } else {
+            document.getElementById('techStatus').innerHTML = `<span style="color:#dc2626;font-weight:bold;">⚠️ 목록에 없는 품목입니다.</span>`;
+        }
+    }
+
+    // 완료 사진 촬영
+    document.getElementById('techStartPhotoBtn').addEventListener('click', async function() {
+        document.getElementById('photoContainer').style.display = 'block';
+        document.getElementById('photoPreview').style.display = 'none';
+        try {
+            photoStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+            });
+            document.getElementById('photo-video').srcObject = photoStream;
+            await document.getElementById('photo-video').play();
+        } catch(err) {
+            document.getElementById('techPhotoStatus').textContent = '❌ 카메라 실행 실패: ' + err.message;
+        }
+    });
+
+    document.getElementById('techCapturePhotoBtn').addEventListener('click', function() {
+        const video = document.getElementById('photo-video');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        stopPhotoScan();
+        document.getElementById('capturedPhoto').src = canvas.toDataURL('image/jpeg', 0.9);
+        document.getElementById('capturedPhoto').dataset.base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+        document.getElementById('photoPreview').style.display = 'block';
+    });
+
+    document.getElementById('techCancelPhotoBtn').addEventListener('click', stopPhotoScan);
+    document.getElementById('techRetakePhotoBtn').addEventListener('click', async function() {
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('photoContainer').style.display = 'block';
+        photoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('photo-video').srcObject = photoStream;
+        await document.getElementById('photo-video').play();
+    });
+
+    document.getElementById('techSavePhotoBtn').addEventListener('click', async function() {
+        const base64 = document.getElementById('capturedPhoto').dataset.base64;
+        if (!base64) return;
+        document.getElementById('techPhotoStatus').textContent = '⏳ 저장 중...';
+        this.disabled = true;
+
+        try {
+            const byteArr = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+            const blob = new Blob([byteArr], { type: 'image/jpeg' });
+            const now = new Date();
+            // 한글 파일명 금지 → 사용자 ID 사용
+            const fileName = `${currentUser.company_id}/${currentUser.id}_order${currentOrder.order_num}_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}.jpg`;
+
+            const { error: uploadError } = await sb.storage.from('inspection-photos').upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = sb.storage.from('inspection-photos').getPublicUrl(fileName);
+
+            // 주문 상태 완료로 업데이트
+            await sb.from('orders').update({ status: 'done', photo_url: urlData.publicUrl }).eq('id', currentOrder.id);
+
+            document.getElementById('techPhotoStatus').innerHTML = '✅ 제출 완료! 관리자에게 전송됐습니다.';
+            document.getElementById('techSavePhotoBtn').textContent = '✅ 제출됨';
+
+        } catch(err) {
+            document.getElementById('techPhotoStatus').textContent = '❌ 저장 실패: ' + err.message;
+            this.disabled = false;
+        }
+    });
+
+    function stopPhotoScan() {
+        if (photoStream) { photoStream.getTracks().forEach(t => t.stop()); photoStream = null; }
+        document.getElementById('photoContainer').style.display = 'none';
+    }
+
+    // ════════════════════════════════
+    // 관리자 화면
+    // ════════════════════════════════
+    function adminTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+        event.target.classList.add('on');
+        document.getElementById('adminDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+        document.getElementById('adminUpload').style.display = tab === 'upload' ? 'block' : 'none';
+        document.getElementById('adminTechs').style.display = tab === 'techs' ? 'block' : 'none';
+        if (tab === 'dashboard') loadAdminDashboard();
+        if (tab === 'techs') loadTechList();
+    }
+
+    async function loadAdminDashboard() {
+        const { data: orders } = await sb.from('orders').select('*, users(name)').eq('company_id', currentUser.company_id);
+        if (!orders) return;
+
+        // 검수 내역 조회
+        const { data: inspections } = await sb.from('inspections').select('*').eq('company_id', currentUser.company_id);
+        const inspByOrder = {};
+        (inspections || []).forEach(ins => {
+            if (!inspByOrder[ins.order_id]) inspByOrder[ins.order_id] = [];
+            inspByOrder[ins.order_id].push(ins.model_name);
+        });
+
+        const total = orders.length;
+        const done = orders.filter(o => o.status === 'done').length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statDone').textContent = done;
+        document.getElementById('statPending').textContent = total - done;
+
+        // 기사별 현황
+        const byTech = {};
+        orders.forEach(o => {
+            const name = o.users?.name || o.tech_name;
+            if (!byTech[name]) byTech[name] = { total: 0, done: 0, orders: [] };
+            byTech[name].total++;
+            if (o.status === 'done') byTech[name].done++;
+            byTech[name].orders.push(o);
+        });
+
+        document.getElementById('adminTechStatus').innerHTML = Object.entries(byTech).map(([name, s]) => {
+            const pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+            const ordersHtml = s.orders.map(o => {
+                const isDone = o.status === 'done';
+                const allModels = (o.models_data || []).map(m => m.name || m);
+                const checkedModels = inspByOrder[o.id] || [];
+
+                // 자재별 검수 현황
+                const modelsHtml = allModels.map(m => {
+                    const isChecked = checkedModels.includes(m);
+                    return `<div style="padding:5px 8px;font-size:13px;display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;">
+                        <span style="${isChecked ? 'text-decoration:line-through;color:#94a3b8;' : 'color:#b91c1c;font-weight:600;'}">${m}</span>
+                        <span>${isChecked ? '✅' : '⬜'}</span>
+                    </div>`;
+                }).join('');
+
+                return `<div style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;background:${isDone?'#f0fdf4':'#fafafa'};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-weight:700;font-size:14px;">의뢰서 ${o.order_num}</span>
+                        <span class="badge ${isDone?'badge-green':'badge-gray'}">${isDone?'✅ 완료':'⏳ '+checkedModels.length+'/'+allModels.length}</span>
+                    </div>
+                    <div style="background:white;border-radius:6px;border:1px solid #e2e8f0;margin-bottom:8px;">
+                        ${modelsHtml}
+                    </div>
+                    ${isDone && o.photo_url ? `
+                        <div style="margin-top:8px;">
+                            <div style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px;">📸 검수 완료 사진</div>
+                            <img src="${o.photo_url}" style="width:100%;border-radius:6px;border:1px solid #16a34a;cursor:pointer;" onclick="window.open('${o.photo_url}','_blank')">
+                        </div>` : ''}
+                </div>`;
+            }).join('');
+
+            return `<div class="card" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;" onclick="this.nextElementSibling.nextElementSibling.style.display=this.nextElementSibling.nextElementSibling.style.display==='none'?'block':'none'">
+                    <div>
+                        <div style="font-weight:800;font-size:15px;">👷 ${name}</div>
+                        <div style="font-size:12px;color:#64748b;">${s.done}/${s.total} 완료</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="badge ${pct===100?'badge-green':'badge-gray'}">${pct}%</span>
+                        <span style="font-size:12px;color:#94a3b8;">▼ 상세</span>
+                    </div>
+                </div>
+                <div class="progress-bar" style="margin-bottom:10px;">
+                    <div class="progress-fill ${pct===100?'done':''}" style="width:${pct}%"></div>
+                </div>
+                <div style="display:none;">${ordersHtml}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // PDF 업로드 및 기사 배분
+    async function adminUploadPdf() {
+        const file = document.getElementById('adminPdfFile').files[0];
+        if (!file) { alert('PDF 파일을 선택해주세요.'); return; }
+
+        const statusEl = document.getElementById('adminUploadStatus');
+        statusEl.textContent = '📄 PDF 파싱 중...';
+
+        const reader = new FileReader();
+        reader.onload = async function() {
+            try {
+                const pdfDoc = await pdfjsLib.getDocument({
+                    data: new Uint8Array(this.result),
+                    cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/cmaps/',
+                    cMapPacked: true
+                }).promise;
+
+                const totalPages = pdfDoc.numPages;
+                statusEl.textContent = `📄 ${totalPages}페이지 파싱 중...`;
+
+                // 기사 목록 조회
+                const { data: techs } = await sb.from('users')
+                    .select('*').eq('company_id', currentUser.company_id).eq('role', 'tech');
+
+                const TECH_NAMES = (techs || []).map(t => t.name);
+                const TECH_MAP = Object.fromEntries((techs || []).map(t => [t.name, t.id]));
+
+                // 페이지별 파싱
+                const parsed = [];
+                for (let i = 1; i <= totalPages; i++) {
+                    statusEl.textContent = `📄 파싱 중 (${i}/${totalPages})...`;
+                    const page = await pdfDoc.getPage(i);
+                    const tc = await page.getTextContent();
+                    // 텍스트 추출
+                    const text = tc.items.map(item => item.str || '').join(' ').replace(/\s+/g, ' ').trim();
+                    const compressed = text.replace(/\s/g, '');
+
+                    // 기사명 추출
+                    let techName = null;
+                    for (const name of TECH_NAMES) {
+                        if (compressed.includes(name)) { techName = name; break; }
+                    }
+                    if (!techName) continue;
+
+                    // 모델명 추출
+                    const upper = text.toUpperCase();
+                    const seenModels = new Set();
+                    const models = [];
+
+                    const ALL_MODEL_RE = /(?:SQ|FQ|SW|FW|PQ|PW|PC|PS|PU|UU|PN)[A-Z0-9]{4,12}(?:\.[A-Z0-9]+)?|M-[A-Z0-9]+(?:\.[A-Z0-9]+)?/g;
+                    const rawMatches = upper.match(ALL_MODEL_RE) || [];
+                    for (let m of rawMatches) {
+                        const base = m.split('.')[0];
+                        const ext = m.includes('.') ? m.split('.')[1] : '';
+                        const isFQSQ = /^(SQ|FQ|SW|FW)/.test(m);
+                        const isPQPW = /^(PQ|PW)/.test(m);
+                        if (isFQSQ && /\d/.test(base.slice(-3))) continue;
+                        if (isFQSQ && base.endsWith('S')) continue;
+                        if (isPQPW && !/\d$/.test(base)) continue;
+                        const cleanModel = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+                        if (!seenModels.has(cleanModel)) {
+                            seenModels.add(cleanModel);
+                            models.push({ name: cleanModel, qty: 1 });
+                        }
+                    }
+
+                    if (!models.length) continue;
+
+                    // PDF 페이지 이미지 캡처
+                    statusEl.textContent = `🖼️ 이미지 저장 중 (${i}/${totalPages})...`;
+                    const canvas = document.createElement('canvas');
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                    const imgBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+                    // Supabase Storage에 이미지 저장
+                    const byteArr = Uint8Array.from(atob(imgBase64), c => c.charCodeAt(0));
+                    const blob = new Blob([byteArr], { type: 'image/jpeg' });
+                    // 한글 파일명 금지 → 기사 ID + 페이지번호 + 타임스탬프로 대체
+                    const techId2 = TECH_MAP[techName] || 'unknown';
+                    const imgFileName = `${currentUser.company_id}/${techId2}_p${i}_${Date.now()}.jpg`;
+                    const { error: imgErr } = await sb.storage.from('pdf-pages').upload(imgFileName, blob, { contentType: 'image/jpeg', upsert: true });
+
+                    let pdfImageUrl = null;
+                    if (imgErr) {
+                        console.error('이미지 업로드 실패:', imgErr);
+                        statusEl.textContent = `⚠️ 이미지 업로드 실패: ${imgErr.message}`;
+                    } else {
+                        const { data: urlData } = sb.storage.from('pdf-pages').getPublicUrl(imgFileName);
+                        pdfImageUrl = urlData.publicUrl;
+                        console.log('이미지 업로드 성공:', pdfImageUrl);
+                    }
+
+                    parsed.push({ techName, models, pageNum: i, pdfImageUrl });
+                }
+
+                // 기사별 그룹핑 및 저장
+                const techCountMap = {};
+                const toInsert = [];
+
+                for (const p of parsed) {
+                    if (!techCountMap[p.techName]) techCountMap[p.techName] = 0;
+                    techCountMap[p.techName]++;
+
+                    const techId = TECH_MAP[p.techName];
+                    if (!techId) continue;
+
+                    toInsert.push({
+                        company_id: currentUser.company_id,
+                        tech_id: techId,
+                        tech_name: p.techName,
+                        job_date: new Date().toISOString().split('T')[0],
+                        order_num: techCountMap[p.techName],
+                        models_data: p.models,
+                        pdf_images: p.pdfImageUrl ? [p.pdfImageUrl] : [],
+                        status: 'pending'
+                    });
+                }
+
+                if (toInsert.length) {
+                    // 오늘 날짜 기존 의뢰서 먼저 삭제 후 재등록
+                    const today = new Date().toISOString().split('T')[0];
+                    await sb.from('orders')
+                        .delete()
+                        .eq('company_id', currentUser.company_id)
+                        .eq('job_date', today);
+
+                    const { error: insertErr } = await sb.from('orders').insert(toInsert);
+                    if (insertErr) throw insertErr;
+                }
+
+                statusEl.innerHTML = `✅ 완료! ${toInsert.length}개 의뢰서 배분됨`;
+                loadAdminDashboard();
+
+            } catch(err) {
+                statusEl.textContent = '❌ 오류: ' + err.message;
+                console.error(err);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 기사 목록
+    async function loadTechList() {
+        const { data: techs } = await sb.from('users').select('*').eq('company_id', currentUser.company_id).eq('role', 'tech');
+        document.getElementById('techList').innerHTML = (techs || []).map(t => `
+            <div class="tech-row">
+                <div>
+                    <div style="font-weight:700;">👷 ${t.name}</div>
+                </div>
+                <button onclick="deleteTech('${t.id}','${t.name}')" style="padding:6px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">삭제</button>
+            </div>
+        `).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;">기사님이 없습니다.</div>';
+    }
+
+    async function addTech() {
+        const name = document.getElementById('newTechName').value.trim();
+        const pwd = document.getElementById('newTechPwd').value.trim();
+        if (!name || !pwd) { alert('이름과 비밀번호를 입력해주세요.'); return; }
+
+        const { error } = await sb.from('users').insert({
+            company_id: currentUser.company_id, name, password: pwd, role: 'tech'
+        });
+
+        if (error) { document.getElementById('addTechStatus').textContent = '❌ 오류: ' + error.message; return; }
+        document.getElementById('addTechStatus').innerHTML = `✅ ${name} 기사님 추가 완료`;
+        document.getElementById('newTechName').value = '';
+        document.getElementById('newTechPwd').value = '';
+        loadTechList();
+    }
+
+    async function deleteTech(id, name) {
+        if (!confirm(`${name} 기사님을 삭제할까요?`)) return;
+        await sb.from('users').delete().eq('id', id);
+        loadTechList();
+    }
+
+    // ════════════════════════════════
+    // 최고관리자 화면
+    // ════════════════════════════════
+    function superTab(tab) {
+        document.querySelectorAll('#superScreen .tab-btn').forEach(b => b.classList.remove('on'));
+        event.target.classList.add('on');
+        document.getElementById('superCompanies').style.display = tab === 'companies' ? 'block' : 'none';
+        document.getElementById('superOverview').style.display = tab === 'overview' ? 'block' : 'none';
+        if (tab === 'companies') loadSuperCompanies();
+        if (tab === 'overview') loadSuperOverview();
+    }
+
+    async function loadSuperCompanies() {
+        const { data: companies } = await sb.from('companies').select('*, users(*)').neq('id', '00000000-0000-0000-0000-000000000001');
+        document.getElementById('companyList').innerHTML = (companies || []).map(c => {
+            const admin = c.users?.find(u => u.role === 'admin');
+            const techCount = c.users?.filter(u => u.role === 'tech').length || 0;
+            return `<div class="company-card">
+                <div class="company-name">🏢 ${c.name}</div>
+                <div style="font-size:13px;color:#475569;">관리자: ${admin?.name || '없음'} · 기사 ${techCount}명</div>
+                <button onclick="deleteCompany('${c.id}','${c.name}')" style="margin-top:10px;padding:6px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">회사 삭제</button>
+            </div>`;
+        }).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;">등록된 회사가 없습니다.</div>';
+    }
+
+    async function addCompany() {
+        const name = document.getElementById('newCompanyName').value.trim();
+        const adminName = document.getElementById('newAdminName').value.trim();
+        const adminPwd = document.getElementById('newAdminPwd').value.trim();
+        if (!name || !adminName || !adminPwd) { alert('모두 입력해주세요.'); return; }
+
+        const { data: company, error: cErr } = await sb.from('companies').insert({ name }).select().single();
+        if (cErr) { document.getElementById('addCompanyStatus').textContent = '❌ ' + cErr.message; return; }
+
+        const { error: uErr } = await sb.from('users').insert({
+            company_id: company.id, name: adminName, password: adminPwd, role: 'admin'
+        });
+        if (uErr) { document.getElementById('addCompanyStatus').textContent = '❌ ' + uErr.message; return; }
+
+        document.getElementById('addCompanyStatus').innerHTML = `✅ ${name} 추가 완료`;
+        document.getElementById('newCompanyName').value = '';
+        document.getElementById('newAdminName').value = '';
+        document.getElementById('newAdminPwd').value = '';
+        loadSuperCompanies();
+    }
+
+    async function deleteCompany(id, name) {
+        if (!confirm(`${name} 회사를 삭제할까요? 모든 데이터가 삭제됩니다.`)) return;
+        await sb.from('companies').delete().eq('id', id);
+        loadSuperCompanies();
+    }
+
+    async function loadSuperOverview() {
+        const { data: orders } = await sb.from('orders').select('*, companies(name)');
+        const { data: companies } = await sb.from('companies').select('name, id').neq('id', '00000000-0000-0000-0000-000000000001');
+
+        const byCompany = {};
+        (orders || []).forEach(o => {
+            const cName = o.companies?.name || '알 수 없음';
+            if (!byCompany[cName]) byCompany[cName] = { total: 0, done: 0 };
+            byCompany[cName].total++;
+            if (o.status === 'done') byCompany[cName].done++;
+        });
+
+        document.getElementById('superOverviewContent').innerHTML = Object.entries(byCompany).map(([name, s]) => {
+            const pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+            return `<div class="company-card">
+                <div class="company-name">🏢 ${name}</div>
+                <div style="font-size:13px;color:#475569;">${s.done}/${s.total} 완료 (${pct}%)</div>
+                <div class="progress-bar" style="margin-top:8px;">
+                    <div class="progress-fill ${pct===100?'done':''}" style="width:${pct}%"></div>
+                </div>
+            </div>`;
+        }).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;">데이터 없음</div>';
+    }
+</script>
+</body>
+</html>
