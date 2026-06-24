@@ -1,4 +1,5 @@
 const CACHE_NAME = 'loadcheck-v1';
+const CACHE_NAME = 'loadcheck-v2026062401'; // 업데이트할 때마다 이 숫자만 바꾸면 됨
 
 // 오프라인에서도 쓸 수 있도록 캐시할 파일들
 const STATIC_ASSETS = [
@@ -28,9 +29,8 @@ self.addEventListener('activate', event => {
       Promise.all(
         keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // 네트워크 요청 처리: Network First 전략
