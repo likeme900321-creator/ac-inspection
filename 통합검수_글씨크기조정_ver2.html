@@ -1,0 +1,2217 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoadCheck</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f1f5f9; margin: 0; padding: 0; color: #1e293b; }
+        .screen { display: none; min-height: 100vh; }
+        .screen.active { display: block; }
+
+        /* ── 공통 ── */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+        .btn { width: 100%; padding: 13px; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-red { background: #dc2626; color: white; }
+        .btn-gray { background: #64748b; color: white; }
+        .btn-amber { background: #f59e0b; color: white; }
+        input[type=text], input[type=password] {
+            width: 100%; padding: 11px 14px; border: 1.5px solid #cbd5e1;
+            border-radius: 8px; font-size: 15px; margin-bottom: 10px;
+        }
+        input:focus { outline: none; border-color: #2563eb; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .badge-red { background: #fee2e2; color: #dc2626; }
+        .badge-gray { background: #f1f5f9; color: #475569; }
+
+        /* ── 로그인 ── */
+        #loginScreen { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); }
+        .login-box { max-width: 380px; margin: 0 auto; padding: 40px 20px; }
+        .login-logo { text-align: center; color: white; margin-bottom: 32px; }
+        .login-logo h1 { font-size: 24px; margin: 0 0 6px; }
+        .login-logo p { font-size: 13px; opacity: 0.8; margin: 0; }
+        .login-card { background: white; border-radius: 16px; padding: 28px; }
+        .login-card h2 { font-size: 18px; color: #1e3a8a; margin: 0 0 20px; text-align: center; }
+        .login-error { color: #dc2626; font-size: 13px; text-align: center; margin-top: 8px; }
+
+        /* ── 상단 헤더 ── */
+        .top-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .top-bar-title { font-size: 16px; font-weight: 800; color: #1e3a8a; }
+        .top-bar-user { font-size: 12px; color: #64748b; text-align: right; }
+        .logout-btn { padding: 6px 12px; background: #f1f5f9; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; color: #475569; font-weight: 600; }
+
+        /* ── 기사 화면 ── */
+        .order-card { background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .order-card:hover { border-color: #2563eb; background: #f8faff; }
+        .order-card.done { border-color: #16a34a; background: #f0fdf4; }
+        .order-title { font-size: 15px; font-weight: 800; color: #1e3a8a; margin-bottom: 4px; }
+        .order-meta { font-size: 12px; color: #64748b; }
+        .model-item { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .model-font-size { font-size: 12px; transition: font-size 0.15s; }
+        .model-item.checked { text-decoration: line-through; color: #94a3b8; }
+        .page-ctrl { display: flex; gap: 8px; margin: 10px 0; }
+        .page-ctrl button { flex: 1; padding: 10px; background: #e2e8f0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        /* ── 카메라 ── */
+        #scanner-container, #photoContainer { display: none; border-radius: 10px; overflow: hidden; background: #000; margin-top: 10px; }
+        .scan-video { width: 100%; max-height: 300px; object-fit: cover; display: block; }
+        .scan-overlay { position: relative; background: #000; }
+        .scan-overlay::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 92%; height: 70%;
+            border: 3px solid #22c55e;
+            border-radius: 8px;
+            pointer-events: none;
+            box-shadow: 0 0 0 2000px rgba(0,0,0,0.3);
+        }
+        .scan-bottom { background: rgba(0,0,0,0.85); padding: 10px; }
+        .scan-hint { color: #94a3b8; font-size: 12px; text-align: center; margin-bottom: 8px; }
+        .scan-btns { display: flex; gap: 8px; }
+        .scan-capture-btn { flex: 2; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .scan-cancel-btn { flex: 1; padding: 12px; background: #475569; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+
+        /* ── 관리자 화면 ── */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+        .stat-box { background: white; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-num { font-size: 28px; font-weight: 900; color: #1e3a8a; }
+        .stat-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .tech-row { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #2563eb; border-radius: 3px; transition: width 0.3s; }
+        .progress-fill.done { background: #16a34a; }
+        .tab-row { display: flex; gap: 6px; margin-bottom: 14px; }
+        .tab-btn { flex: 1; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: white; font-size: 13px; font-weight: 700; cursor: pointer; color: #64748b; }
+        .tab-btn.on { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+
+        /* ── 최고관리자 ── */
+        .company-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+        .company-name { font-size: 16px; font-weight: 800; color: #1e3a8a; margin-bottom: 8px; }
+
+        /* ── PDF 미리보기 ── */
+        #pdfCanvas { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+        /* ── 모달 ── */
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+        .modal-bg.on { display: flex; }
+        .modal-box { background: white; border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-title { font-size: 17px; font-weight: 800; }
+        .modal-close { background: #f1f5f9; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; }
+
+        /* ── 사진 미리보기 ── */
+        #photoPreview { display: none; margin-top: 10px; }
+        #capturedPhoto { width: 100%; border-radius: 8px; border: 2px solid #f59e0b; }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     이용약관 모달
+════════════════════════════════ -->
+<div id="termsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;width:92%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <!-- 헤더 -->
+        <div style="padding:20px 20px 12px;border-bottom:1px solid #e2e8f0;flex-shrink:0;">
+            <div style="font-size:18px;font-weight:900;color:#1e3a8a;margin-bottom:4px;">⚙️ LoadCheck 이용약관</div>
+            <div style="font-size:12px;color:#94a3b8;">서비스 이용 전 아래 약관을 반드시 확인해주세요.</div>
+        </div>
+        <!-- 약관 내용 -->
+        <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+            <div style="background:#f8fafc;border-radius:10px;padding:14px;font-size:13px;color:#334155;line-height:1.8;">
+                <p style="margin:0 0 14px;"><span style="font-weight:800;color:#1e3a8a;">제1조 (계정 및 권한 관리)</span><br>
+                사용자는 지정된 권한(최고관리자, 관리자, 기사) 내에서만 시스템을 이용해야 하며, 계정 정보를 타인에게 양도하거나 대여하여 발생한 손해는 사용자 본인에게 책임이 있습니다.</p>
+
+                <p style="margin:0 0 14px;"><span style="font-weight:800;color:#1e3a8a;">제2조 (AI 기능 책임 한계)</span><br>
+                본 시스템의 AI 모델명 인식 기능은 업무 보조 도구이며, 최종 검수 결과에 대한 확인 및 책임은 관리자와 기사에게 있습니다. AI 인식 오류나 사용자의 오입력으로 인해 발생한 현장 손해에 대해 회사는 책임을 지지 않습니다.</p>
+
+                <p style="margin:0 0 14px;"><span style="font-weight:800;color:#1e3a8a;">제3조 (데이터 보관 및 삭제)</span><br>
+                현장에서 업로드된 이미지, PDF, 검수 데이터는 보안 및 서버 관리를 위해 30일간 보관 후 자동 영구 삭제됩니다. 사용자는 보관 기간 내에 필요한 데이터를 스스로 백업해야 하며, 삭제된 데이터의 복구는 불가능합니다.</p>
+
+                <p style="margin:0;"><span style="font-weight:800;color:#1e3a8a;">제4조 (지식재산권 보호)</span><br>
+                본 시스템의 구조, UI/UX, 알고리즘 매칭 로직의 저작권은 LoadCheck에게 있으며, 이를 무단 복제, 역설계(리버스 엔지니어링), 혹은 유사 서비스 개발에 이용할 경우 법적 처벌을 받습니다.</p>
+            </div>
+        </div>
+        <!-- 동의 버튼 -->
+        <div style="padding:14px 20px;border-top:1px solid #e2e8f0;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <input type="checkbox" id="termsCheck" style="width:18px;height:18px;cursor:pointer;" onchange="document.getElementById('termsAgreeBtn').disabled=!this.checked;document.getElementById('termsAgreeBtn').style.opacity=this.checked?'1':'0.4';">
+                <label for="termsCheck" style="font-size:13px;font-weight:600;color:#1e293b;cursor:pointer;">위 이용약관을 모두 읽었으며 동의합니다.</label>
+            </div>
+            <button id="termsAgreeBtn" onclick="agreeTerms()" disabled
+                style="width:100%;padding:13px;border:none;border-radius:8px;background:#2563eb;color:white;font-weight:bold;font-size:15px;cursor:pointer;opacity:0.4;">
+                ✅ 동의하고 시작하기
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     로그인 화면
+════════════════════════════════ -->
+<div id="loginScreen" class="screen active">
+    <div class="login-box">
+        <div class="login-logo">
+            <h1>⚙️ LoadCheck</h1>
+            <p>에어컨 자재 검수 시스템</p>
+        </div>
+        <div class="login-card">
+            <h2>로그인</h2>
+            <select id="loginCompany" style="width:100%;padding:11px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px;margin-bottom:10px;background:white;color:#1e293b;">
+                <option value="">회사 선택...</option>
+            </select>
+            <input type="text" id="loginName" placeholder="이름 입력">
+            <input type="password" id="loginPwd" placeholder="비밀번호 입력">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="saveCompany" style="width:16px;height:16px;cursor:pointer;">
+                    <label for="saveCompany" style="font-size:13px;color:#64748b;cursor:pointer;">회사 저장</label>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="saveId" style="width:16px;height:16px;cursor:pointer;">
+                    <label for="saveId" style="font-size:13px;color:#64748b;cursor:pointer;">ID 저장</label>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="doLogin()">로그인</button>
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     기사님 화면
+════════════════════════════════ -->
+<div id="techScreen" class="screen">
+    <div class="top-bar">
+        <div class="top-bar-title" id="techCompanyName" style="font-size:18px;"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="top-bar-user" id="techUserInfo" style="text-align:right;"></div>
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="container">
+        <!-- 자재 목록 글씨 크기 조절 -->
+        <div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:8px;">
+            <span style="font-size:12px;color:#94a3b8;margin-right:4px;">자재 글씨 크기</span>
+            <button onclick="adjustModelFontSize(-1)" style="width:32px;height:32px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-weight:bold;font-size:13px;cursor:pointer;color:#475569;">가-</button>
+            <button onclick="adjustModelFontSize(1)" style="width:32px;height:32px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-weight:bold;font-size:16px;cursor:pointer;color:#475569;">가+</button>
+        </div>
+        <!-- 통합 스캔 버튼 -->
+        <div id="unifiedScanSection" style="display:none;margin-bottom:14px;">
+            <button class="btn btn-primary" id="unifiedScanBtn" style="font-size:16px;padding:15px;">
+                📷 통합 스캔
+            </button>
+            <!-- 통합 스캔 카메라 -->
+            <div id="unified-scanner-container" style="display:none;border-radius:10px;overflow:hidden;background:#000;margin-top:10px;">
+                <div class="scan-overlay">
+                    <video id="unified-scan-video" class="scan-video" autoplay playsinline muted></video>
+                </div>
+                <canvas id="unified-scan-canvas" style="display:none"></canvas>
+                <div class="scan-bottom">
+                    <div class="scan-hint">📦 초록 박스 안에 스티커 모델명을 맞춰주세요</div>
+                    <div class="scan-btns">
+                        <button class="scan-capture-btn" id="unifiedCaptureBtn">📸 찍기</button>
+                        <button class="scan-cancel-btn" id="unifiedStopScanBtn">✕ 취소</button>
+                    </div>
+                </div>
+            </div>
+            <div id="unifiedOcrResult" style="margin-top:8px;font-size:13px;font-weight:bold;color:#475569;"></div>
+        </div>
+
+        <!-- 전체 검수 완료 사진 (모든 의뢰서 완료 시에만 표시) -->
+        <div id="techPhotoSection" style="display:none;margin-bottom:14px;">
+            <div class="card" style="border-left:5px solid #f59e0b;">
+                <label style="font-weight:bold;display:block;margin-bottom:6px;color:#b45309;">📷 전체 검수 완료 사진</label>
+                <p style="font-size:13px;color:#64748b;margin:0 0 10px;">모든 의뢰서 자재를 한 화면에 모아두고 사진을 찍어주세요. (한 장으로 전체 의뢰서 제출)</p>
+                <button class="btn btn-amber" id="techStartPhotoBtn">📸 자재 전체 사진 촬영</button>
+                <div id="photoContainer" style="display:none;">
+                    <video id="photo-video" class="scan-video" autoplay playsinline muted></video>
+                    <div class="scan-bottom">
+                        <div class="scan-hint">📦 모든 자재가 화면에 보이도록 맞춰주세요</div>
+                        <div class="scan-btns">
+                            <button class="scan-capture-btn" id="techCapturePhotoBtn">📸 촬영</button>
+                            <button class="scan-cancel-btn" id="techCancelPhotoBtn">✕ 취소</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="photoPreview" style="display:none;">
+                    <img id="capturedPhoto" style="width:100%;border-radius:8px;border:2px solid #f59e0b;margin-top:10px;">
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button class="btn btn-success" id="techSavePhotoBtn">✅ 제출 완료</button>
+                        <button class="btn btn-gray" id="techRetakePhotoBtn">🔄 다시 찍기</button>
+                    </div>
+                </div>
+                <div id="techPhotoStatus" style="margin-top:8px;font-size:13px;font-weight:bold;"></div>
+            </div>
+        </div>
+
+        <!-- 의뢰서 목록 -->
+        <div id="techOrderList">
+            <div style="text-align:center;color:#94a3b8;padding:40px;">의뢰서를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <!-- 의뢰서 상세 모달 -->
+    <div class="modal-bg" id="orderDetailModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="orderDetailTitle">의뢰서 1</span>
+                <button class="modal-close" onclick="closeOrderDetail()">✕</button>
+            </div>
+
+            <!-- PDF 이미지 -->
+            <div id="orderPdfImages" style="margin-bottom:14px;"></div>
+
+            <!-- 자재 목록 -->
+            <div class="card" style="margin-bottom:14px;">
+                <div style="font-weight:800;font-size:13px;color:#4f46e5;margin-bottom:8px;">[배정 자재 목록]</div>
+                <div id="orderModelList"></div>
+            </div>
+
+
+
+            <!-- 수동 입력 -->
+            <div class="card" style="border-left:5px solid #16a34a;margin-bottom:14px;">
+                <label style="font-weight:bold;display:block;margin-bottom:6px;color:#15803d;">🔍 수동 확인</label>
+                <input type="text" id="techManualInput" placeholder="모델명 직접 입력">
+                <button class="btn btn-success" onclick="techCheckModel()">✅ 검수 확정</button>
+                <div id="techStatus" style="margin-top:8px;text-align:center;font-size:14px;"></div>
+            </div>
+
+            <!-- 미완료 사유 보고 -->
+            <div class="card" style="border-left:5px solid #dc2626;margin-bottom:14px;">
+                <!-- 헤더 (항상 표시, 클릭으로 토글) -->
+                <div onclick="toggleReasonPanel()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+                    <label style="font-weight:bold;color:#dc2626;cursor:pointer;">⚠️ 미완료 사유 보고</label>
+                    <span id="reasonToggleIcon" style="font-size:18px;color:#dc2626;">＋</span>
+                </div>
+                <!-- 접히는 패널 -->
+                <div id="reasonPanel" style="display:none;margin-top:12px;">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+                        <button class="reason-btn" onclick="selectReason(this,'연기')"      style="padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-size:13px;font-weight:600;cursor:pointer;color:#475569;">📅 연기</button>
+                        <button class="reason-btn" onclick="selectReason(this,'취소')"      style="padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-size:13px;font-weight:600;cursor:pointer;color:#475569;">❌ 취소</button>
+                        <button class="reason-btn" onclick="selectReason(this,'연락불가')"  style="padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-size:13px;font-weight:600;cursor:pointer;color:#475569;">📵 연락불가</button>
+                        <button class="reason-btn" onclick="selectReason(this,'현장부적합')" style="padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-size:13px;font-weight:600;cursor:pointer;color:#475569;">🚧 현장부적합</button>
+                        <button class="reason-btn" onclick="selectReason(this,'기타')"      style="padding:8px 4px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-size:13px;font-weight:600;cursor:pointer;color:#475569;">📝 기타</button>
+                    </div>
+                    <textarea id="techReasonMemo" placeholder="필수 입력 ✱ 예) 고객이름 / 사유 / 일자 등" rows="3"
+                        style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;resize:none;margin-bottom:8px;box-sizing:border-box;"></textarea>
+                    <button class="btn btn-red" onclick="submitReason()">📤 관리자에게 보고</button>
+                    <div id="techReasonStatus" style="margin-top:8px;font-size:13px;font-weight:bold;text-align:center;"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     관리자 화면
+════════════════════════════════ -->
+<div id="adminScreen" class="screen">
+    <div class="top-bar">
+        <div class="top-bar-title">⚙️ LoadCheck</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="top-bar-user" id="adminUserInfo"></div>
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="tab-row">
+            <button class="tab-btn on" onclick="adminTab('dashboard')">📊 현황</button>
+            <button class="tab-btn" onclick="adminTab('history')">📅 날짜별 내역</button>
+            <button class="tab-btn" onclick="adminTab('reports')" id="reportsTabBtn">⚠️ 미완료</button>
+            <button class="tab-btn" onclick="adminTab('upload')">📄 업로드</button>
+            <button class="tab-btn" onclick="adminTab('techs')">👷 기사</button>
+        </div>
+
+        <!-- 현황 탭 -->
+        <div id="adminDashboard">
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-num" id="statTotal">-</div>
+                    <div class="stat-label">전체 의뢰</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#16a34a" id="statDone">-</div>
+                    <div class="stat-label">검수 완료</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#dc2626" id="statPending">-</div>
+                    <div class="stat-label">미완료</div>
+                </div>
+            </div>
+            <div id="adminTechStatus"></div>
+        </div>
+
+        <!-- 미완료 사유 탭 -->
+        <div id="adminReports" style="display:none;">
+            <div id="adminReportsContent">
+                <div style="text-align:center;color:#94a3b8;padding:40px;">불러오는 중...</div>
+            </div>
+        </div>
+
+        <!-- 날짜별 내역 탭 -->
+        <div id="adminHistory" style="display:none;">
+            <div class="card">
+                <div style="font-weight:bold;margin-bottom:10px;">📅 날짜 선택</div>
+                <input type="date" id="historyDate" style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;margin-bottom:10px;">
+                <button class="btn btn-primary" onclick="loadHistory()">🔍 조회</button>
+            </div>
+            <div id="historyContent"></div>
+        </div>
+
+        <!-- PDF 업로드 탭 -->
+        <div id="adminUpload" style="display:none;">
+            <div class="card">
+                <label style="font-weight:bold;display:block;margin-bottom:8px;">📄 설치의뢰서 PDF 등록</label>
+                <input type="file" id="adminPdfFile" accept="application/pdf" style="width:100%;font-size:13px;margin-bottom:10px;">
+                <div id="adminUploadStatus" style="font-size:13px;color:#475569;margin-bottom:10px;"></div>
+                <button class="btn btn-primary" onclick="adminUploadPdf()">📤 업로드 및 배분</button>
+            </div>
+        </div>
+
+        <!-- 기사 관리 탭 -->
+        <div id="adminTechs" style="display:none;">
+            <div class="card">
+                <div style="font-weight:bold;margin-bottom:10px;">👷 기사님 계정 추가</div>
+                <input type="text" id="newTechName" placeholder="기사님 이름">
+                <input type="password" id="newTechPwd" placeholder="비밀번호">
+                <button class="btn btn-primary" onclick="addTech()">➕ 추가</button>
+                <div id="addTechStatus" style="margin-top:8px;font-size:13px;"></div>
+            </div>
+            <div id="techList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     최고관리자 화면
+════════════════════════════════ -->
+<div id="superScreen" class="screen">
+    <div class="top-bar">
+        <div class="top-bar-title">⚙️ LoadCheck</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="tab-row">
+            <button class="tab-btn on" onclick="superTab('companies')">🏢 회사 관리</button>
+            <button class="tab-btn" onclick="superTab('overview')">📊 전체 현황</button>
+            <button class="tab-btn" onclick="superTab('terms')">📋 약관 동의</button>
+        </div>
+
+        <!-- 회사 관리 탭 -->
+        <div id="superCompanies">
+            <div class="card">
+                <div style="font-weight:bold;margin-bottom:10px;">🏢 회사 추가</div>
+                <input type="text" id="newCompanyName" placeholder="회사명">
+                <input type="text" id="newAdminName" placeholder="관리자 이름">
+                <input type="password" id="newAdminPwd" placeholder="관리자 비밀번호">
+                <button class="btn btn-primary" onclick="addCompany()">➕ 회사 추가</button>
+                <div id="addCompanyStatus" style="margin-top:8px;font-size:13px;"></div>
+            </div>
+            <div id="companyList"></div>
+        </div>
+
+        <!-- 전체 현황 탭 -->
+        <div id="superOverview" style="display:none;">
+            <div id="superOverviewContent"></div>
+        </div>
+
+        <!-- 이용약관 동의 탭 -->
+        <div id="superTerms" style="display:none;">
+            <div class="card" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div style="font-weight:bold;">📋 이용약관 동의 내역</div>
+                    <div style="font-size:12px;color:#94a3b8;">전체 회사 · 영구 보관</div>
+                </div>
+                <input type="text" id="termsSearchInput" placeholder="이름 또는 회사명 검색..."
+                    oninput="filterTermsRecords()"
+                    style="margin-bottom:0;">
+            </div>
+            <div id="superTermsContent">
+                <div style="text-align:center;color:#94a3b8;padding:40px;">불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Supabase 설정 ──
+    const SUPABASE_URL = 'https://zsgexwuyrjankyojmvys.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzZ2V4d3V5cmphbmt5b2ptdnlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTg5MDMsImV4cCI6MjA5NzA5NDkwM30.SlY9C88IXX4PUY7Of1SfyOI1rQzbqYTSS06kAuJR70c';
+    const EDGE_FUNCTION_URL = SUPABASE_URL + '/functions/v1/claude-proxy';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    // KST(한국 시간) 기준 오늘 날짜 반환
+    function getKSTDate() {
+        const now = new Date();
+        const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+        return kst.toISOString().split('T')[0];
+    }
+
+    // ── 현재 로그인 정보 ──
+    let currentUser = null;
+
+    // ── 화면 전환 ──
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // ════════════════════════════════
+    // 로그인
+    // ════════════════════════════════
+    // 페이지 로드 시 회사 목록 불러오기
+    window.addEventListener('load', async () => {
+        // 저장된 ID 불러오기
+        const savedId = localStorage.getItem('savedLoginId');
+        if (savedId) {
+            document.getElementById('loginName').value = savedId;
+            document.getElementById('saveId').checked = true;
+        }
+
+        // 회사 목록 로드 (super 제외)
+        const { data: companies } = await sb.from('companies')
+            .select('id, name')
+            .neq('id', '00000000-0000-0000-0000-000000000001')
+            .order('name', { ascending: true });
+
+        const sel = document.getElementById('loginCompany');
+        (companies || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            sel.appendChild(opt);
+        });
+
+        // 저장된 회사 복원
+        const savedCompany = localStorage.getItem('savedLoginCompany');
+        if (savedCompany) {
+            sel.value = savedCompany;
+            document.getElementById('saveCompany').checked = true;
+        }
+    });
+
+    async function doLogin() {
+        // 로그인 시 Service Worker 캐시 자동 갱신
+        if ('serviceWorker' in navigator) {
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const reg of registrations) {
+                    await reg.update();
+                }
+                // 최신 캐시 적용 (이전 캐시 삭제)
+                const cacheNames = await caches.keys();
+                const currentCache = cacheNames[cacheNames.length - 1];
+                for (const name of cacheNames) {
+                    if (name !== currentCache) {
+                        await caches.delete(name);
+                    }
+                }
+            } catch(e) { console.warn('캐시 갱신 실패:', e); }
+        }
+
+        const companyId = document.getElementById('loginCompany').value.trim();
+        const name = document.getElementById('loginName').value.trim();
+        const pwd = document.getElementById('loginPwd').value.trim();
+        if (!companyId) { document.getElementById('loginError').textContent = '회사를 선택해주세요.'; return; }
+        if (!name || !pwd) { document.getElementById('loginError').textContent = '이름과 비밀번호를 입력해주세요.'; return; }
+
+        // 회사 저장 처리
+        if (document.getElementById('saveCompany').checked) {
+            localStorage.setItem('savedLoginCompany', companyId);
+        } else {
+            localStorage.removeItem('savedLoginCompany');
+        }
+        // ID 저장 처리
+        if (document.getElementById('saveId').checked) {
+            localStorage.setItem('savedLoginId', name);
+        } else {
+            localStorage.removeItem('savedLoginId');
+        }
+
+        document.getElementById('loginError').textContent = '확인 중...';
+
+        // super 계정은 회사 선택 없이 별도 처리
+        const { data: superRows } = await sb.from('users')
+            .select('*, companies(name)')
+            .eq('name', name)
+            .eq('password', pwd)
+            .eq('role', 'super');
+        if (superRows?.length > 0) {
+            currentUser = superRows[0];
+            showScreen('superScreen');
+            loadSuperCompanies();
+            return;
+        }
+
+        // 일반 로그인: company_id 포함해서 정확히 조회
+        const { data: rows, error } = await sb.from('users')
+            .select('*, companies(name)')
+            .eq('company_id', companyId)
+            .eq('name', name)
+            .eq('password', pwd);
+
+        if (error || !rows || rows.length === 0) {
+            document.getElementById('loginError').textContent = '❌ 이름 또는 비밀번호가 틀렸습니다.';
+            return;
+        }
+        const data = rows[0];
+
+        currentUser = data;
+
+        // super는 약관 동의 생략
+        if (data.role === 'super') {
+            showScreen('superScreen');
+            loadSuperCompanies();
+            return;
+        }
+
+        // 최초 로그인 여부 확인 (DB의 terms_agreed 컬럼)
+        if (!data.terms_agreed) {
+            // 약관 모달 표시 (동의 후 화면 전환)
+            document.getElementById('termsModal').style.display = 'flex';
+            document.getElementById('termsCheck').checked = false;
+            document.getElementById('termsAgreeBtn').disabled = true;
+            document.getElementById('termsAgreeBtn').style.opacity = '0.4';
+        } else {
+            proceedAfterLogin();
+        }
+    }
+
+    document.getElementById('loginPwd').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+
+    // 약관 동의 처리
+    async function agreeTerms() {
+        const agreedAt = new Date().toISOString();
+
+        // users 테이블 동의 플래그 업데이트
+        const { error: updateErr } = await sb.from('users').update({ terms_agreed: true }).eq('id', currentUser.id);
+        if (updateErr) {
+            alert('동의 저장 실패(users): ' + updateErr.message);
+            console.error('users update error:', updateErr);
+            return;
+        }
+
+        // terms_log 테이블에 영구 기록
+        const { error: logErr } = await sb.from('terms_log').insert({
+            user_id:      currentUser.id,
+            user_name:    currentUser.name,
+            user_role:    currentUser.role,
+            company_id:   currentUser.company_id,
+            company_name: currentUser.companies?.name || '',
+            agreed_at:    agreedAt
+        });
+        if (logErr) {
+            alert('동의 기록 실패(terms_log): ' + logErr.message);
+            console.error('terms_log insert error:', logErr);
+            return;
+        }
+
+        currentUser.terms_agreed = true;
+        document.getElementById('termsModal').style.display = 'none';
+        proceedAfterLogin();
+    }
+
+    // 로그인 후 화면 전환 (약관 동의 여부와 무관하게 공통 처리)
+    async function proceedAfterLogin() {
+        if (currentUser.role === 'admin') {
+            document.getElementById('adminUserInfo').innerHTML = `<span style="font-size:11px;color:#94a3b8;">${currentUser.companies?.name}</span><br><span style="font-weight:700;">${currentUser.name} 관리자</span>`;
+            showScreen('adminScreen');
+            loadAdminDashboard();
+        } else {
+            document.getElementById('techCompanyName').textContent = currentUser.companies?.name || '';
+            document.getElementById('techUserInfo').innerHTML = `<span style="font-size:10px;color:#94a3b8;">⚙️ LoadCheck</span><br><span style="font-weight:700;font-size:13px;">${currentUser.name} 기사님</span>`;
+            showScreen('techScreen');
+            loadTechOrders();
+        }
+    }
+
+    function doLogout() {
+        currentUser = null;
+        document.getElementById('loginName').value = '';
+        document.getElementById('loginPwd').value = '';
+        document.getElementById('loginError').textContent = '';
+        showScreen('loginScreen');
+    }
+
+    // ════════════════════════════════
+    // 기사님 화면
+    // ════════════════════════════════
+    let currentOrder = null;
+    let currentOrderModels = [];
+    let checkedModels = new Map(); // key: 모델명, value: 검수된 횟수
+    let scanStream = null, photoStream = null;
+
+    // ── 통합 스캔 ──
+    let unifiedStream = null;
+    let allOrderModels = []; // 전체 의뢰서 모델 목록 [{orderId, orderNum, model, qty, checked}]
+
+    function buildAllOrderModels(orders) {
+        allOrderModels = [];
+        for (const order of orders) {
+            const models = (order.models_data || []).map(m => typeof m === 'string' ? { name: m, qty: 1 } : m);
+            for (const item of models) {
+                const name = item.name || item;
+                const qty = item.qty || 1;
+                const checked = checkedModels.get ? (checkedModels.get(name) || 0) : 0;
+                allOrderModels.push({ orderId: order.id, orderNum: order.order_num, model: name, qty, checked });
+            }
+        }
+    }
+
+    document.getElementById('unifiedScanBtn').addEventListener('click', async function() {
+        document.getElementById('unified-scanner-container').style.display = 'block';
+        try {
+            if (unifiedStream) { unifiedStream.getTracks().forEach(t => t.stop()); unifiedStream = null; }
+            const video = document.getElementById('unified-scan-video');
+            video.srcObject = null;
+            unifiedStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            video.srcObject = unifiedStream;
+            await video.play();
+            document.getElementById('unifiedOcrResult').innerHTML = '📦 초록 박스 안에 스티커를 맞추고 📸 찍기를 눌러주세요';
+        } catch(err) {
+            document.getElementById('unifiedOcrResult').textContent = '❌ 카메라 실행 실패: ' + err.message;
+            document.getElementById('unified-scanner-container').style.display = 'none';
+        }
+    });
+
+    document.getElementById('unifiedCaptureBtn').addEventListener('click', async function() {
+        const video = document.getElementById('unified-scan-video');
+        const canvas = document.getElementById('unified-scan-canvas');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        // 3장 중 가장 선명한 것 선택
+        const frames = [];
+        for (let i = 0; i < 3; i++) {
+            await new Promise(r => setTimeout(r, i === 0 ? 0 : 300));
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            frames.push({ base64: canvas.toDataURL('image/jpeg', 0.95).split(',')[1], sharpness: calcSharpness(imageData) });
+        }
+        frames.sort((a, b) => b.sharpness - a.sharpness);
+
+        // 카메라 숨기기
+        document.getElementById('unified-scanner-container').style.display = 'none';
+        if (unifiedStream) { unifiedStream.getTracks().forEach(t => t.stop()); unifiedStream = null; }
+
+        document.getElementById('unifiedOcrResult').innerHTML = '🔍 AI 분석 중...';
+        await analyzeUnified(frames[0].base64);
+    });
+
+    document.getElementById('unifiedStopScanBtn').addEventListener('click', function() {
+        if (unifiedStream) { unifiedStream.getTracks().forEach(t => t.stop()); unifiedStream = null; }
+        document.getElementById('unified-scanner-container').style.display = 'none';
+    });
+
+    async function analyzeUnified(base64) {
+        try {
+            const res = await fetch(EDGE_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+                body: JSON.stringify({ base64 })
+            });
+            const data = await res.json();
+            const annotations = data.responses?.[0]?.textAnnotations || [];
+            const fullText = annotations[0]?.description?.toUpperCase() || '';
+            const processedText = fullText.replace(/([A-Z0-9]+WAJ)[\r\n\s]+(AKOR|BKOR|EKOR)/g, '$1.$2');
+
+
+            const MODEL_PATTERN = /(SQ|FQ|SW|FW|PQ|PW|PC|PS|PU|UU|PN)[A-Z0-9]{4,12}(?:\.[A-Z0-9]+)?|M-[A-Z0-9]+(?:\.[A-Z0-9]+)?|(?:ACAH|ACAO|IST)-[A-Z0-9]+/g;
+            const foundModels = processedText.match(MODEL_PATTERN) || [];
+
+            if (!foundModels.length) {
+                document.getElementById('unifiedOcrResult').innerHTML = '❌ 인식 실패. 다시 시도해주세요.';
+                return;
+            }
+
+            // 전체 의뢰서에서 모델 찾아서 체크
+            let matchedCount = 0;
+            let resultHtml = '';
+            for (const rawModel of foundModels) {
+                const base = rawModel.split('.')[0];
+                const ext = rawModel.includes('.') ? rawModel.split('.')[1] : '';
+                const model = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+
+                // 전체 의뢰서에서 의뢰서 순서대로 탐색
+                const targets = allOrderModels.filter(m => m.model.split('.')[0] === base);
+                if (!targets.length) {
+                    resultHtml += `<div style="color:#94a3b8;font-size:12px;">⚪ ${model} - 목록에 없는 모델</div>`;
+                    continue;
+                }
+
+                // 수량이 남은 의뢰서 찾기 (의뢰서 번호 순서대로)
+                const available = targets.find(t => t.checked < t.qty);
+                if (!available) {
+                    resultHtml += `<div style="color:#dc2626;font-weight:bold;">⚠️ ${model} - 모든 의뢰서 수량 초과!</div>`;
+                    continue;
+                }
+
+                // checkedModels Map에서 해당 의뢰서의 체크 수 증가
+                const orderCheckedKey = `${available.orderId}_${available.model}`;
+                const currentChecked = available.checked;
+                available.checked++;
+
+                // inspections DB 저장
+                const { error: insErr } = await sb.from('inspections').insert({
+                    company_id: currentUser.company_id,
+                    order_id: available.orderId,
+                    tech_id: currentUser.id,
+                    model_name: available.model
+                });
+
+                if (insErr) {
+                    available.checked--; // 롤백
+                    resultHtml += `<div style="color:#dc2626;">❌ ${model} 저장 실패</div>`;
+                } else {
+                    matchedCount++;
+                    resultHtml += `<div style="color:#16a34a;font-weight:bold;">✅ ${model} → 의뢰서 ${available.orderNum}번 (${available.checked}/${available.qty}개)</div>`;
+                }
+            }
+
+            document.getElementById('unifiedOcrResult').innerHTML = resultHtml || '❌ 일치하는 모델 없음';
+
+            // 인식 성공한 경우에만 사진 저장
+            if (matchedCount > 0) {
+                try {
+                    const now = new Date();
+                    const scanFileName = `${currentUser.company_id}/scan_${currentUser.id}_${now.getTime()}.jpg`;
+                    const byteArr = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+                    const blob = new Blob([byteArr], { type: 'image/jpeg' });
+                    const { error: uploadErr } = await sb.storage.from('scan-photos').upload(scanFileName, blob, { contentType: 'image/jpeg', upsert: true });
+                    if (!uploadErr) {
+                        const { data: urlData } = sb.storage.from('scan-photos').getPublicUrl(scanFileName);
+                        await sb.from('scan_photos').insert({
+                            company_id: currentUser.company_id,
+                            tech_id: currentUser.id,
+                            tech_name: currentUser.name,
+                            photo_url: urlData.publicUrl,
+                            recognized_models: foundModels,
+                            taken_at: now.toISOString()
+                        });
+                    }
+                } catch(e) {
+                    document.getElementById('unifiedOcrResult').innerHTML += `<div style="color:#dc2626;font-size:12px;">📷 사진 저장 오류: ${e.message}</div>`;
+                }
+            }
+
+            // 의뢰서 목록 새로고침
+            await loadTechOrders();
+
+        } catch(err) {
+            document.getElementById('unifiedOcrResult').innerHTML = '❌ 오류: ' + err.message;
+        }
+    }
+
+    // 자재 목록 글씨 크기 조절
+    function getModelFontSize() {
+        return parseInt(localStorage.getItem('modelFontSize') || '12', 10);
+    }
+    function applyModelFontSize() {
+        const size = getModelFontSize();
+        const style = document.getElementById('modelFontSizeStyle') || (() => {
+            const s = document.createElement('style');
+            s.id = 'modelFontSizeStyle';
+            document.head.appendChild(s);
+            return s;
+        })();
+        style.textContent = `.model-font-size { font-size: ${size}px !important; }`;
+    }
+    function adjustModelFontSize(delta) {
+        let size = getModelFontSize() + delta * 2;
+        size = Math.max(10, Math.min(20, size)); // 10px ~ 20px 범위 제한
+        localStorage.setItem('modelFontSize', size);
+        applyModelFontSize();
+    }
+    applyModelFontSize(); // 페이지 로드 시 저장된 크기 적용
+
+    async function loadTechOrders() {
+        const today = getKSTDate();
+        const { data, error } = await sb.from('orders')
+            .select('*')
+            .eq('tech_id', currentUser.id)
+            .eq('job_date', today)
+            .order('order_num', { ascending: true });
+
+        const filteredData = data;
+
+        const el = document.getElementById('techOrderList');
+        if (error || !filteredData?.length) {
+            el.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:40px;">배정된 의뢰서가 없습니다.</div>`;
+            document.getElementById('unifiedScanSection').style.display = 'none';
+            return;
+        }
+
+        // 통합 스캔 버튼 표시 + 전체 의뢰서 모델 초기화
+        document.getElementById('unifiedScanSection').style.display = 'block';
+
+        // 전체 검수 내역 불러와서 allOrderModels 구성
+        const orderIds = filteredData.map(o => o.id);
+        const { data: allInspections } = await sb.from('inspections')
+            .select('order_id, model_name')
+            .in('order_id', orderIds)
+            .eq('tech_id', currentUser.id);
+
+        // 의뢰서별 체크 카운트 맵
+        const inspCountMap = {};
+        (allInspections || []).forEach(ins => {
+            const key = `${ins.order_id}_${ins.model_name}`;
+            inspCountMap[key] = (inspCountMap[key] || 0) + 1;
+        });
+
+        // allOrderModels 구성
+        allOrderModels = [];
+        for (const order of filteredData) {
+            const models = (order.models_data || []).map(m => typeof m === 'string' ? { name: m, qty: 1 } : m);
+            for (const item of models) {
+                const name = item.name || item;
+                const qty = item.qty || 1;
+                const checked = inspCountMap[`${order.id}_${name}`] || 0;
+                allOrderModels.push({ orderId: order.id, orderNum: order.order_num, model: name, qty, checked });
+            }
+        }
+
+        // 전체 의뢰서(연기/취소 보고된 것 제외)가 모두 검수 완료됐는지 확인
+        // → 완료 시에만 메인 화면에 전체 완료 사진 섹션 표시
+        window.currentTechOrders = filteredData; // 사진 제출 시 전체 의뢰서 id 참조용
+        const reportedOrderIds = new Set((await sb.from('order_reports').select('order_id').eq('tech_id', currentUser.id)).data?.map(r => r.order_id) || []);
+        const activeOrders = filteredData.filter(o => !reportedOrderIds.has(o.id) && o.status !== 'done');
+        const allModelsForActive = allOrderModels.filter(m => activeOrders.some(o => o.id === m.orderId));
+        const allChecked = allModelsForActive.length > 0 && allModelsForActive.every(m => m.checked >= m.qty);
+        const alreadyAllDone = filteredData.every(o => o.status === 'done' || reportedOrderIds.has(o.id));
+
+        const photoSection = document.getElementById('techPhotoSection');
+        if (alreadyAllDone) {
+            photoSection.style.display = 'none'; // 이미 전부 완료/보고된 상태
+        } else if (allChecked && activeOrders.length > 0) {
+            photoSection.style.display = 'block';
+        } else {
+            photoSection.style.display = 'none';
+        }
+
+        // 오늘 날짜 보고된 미완료 사유 조회
+        const { data: reports } = await sb.from('order_reports')
+            .select('order_id, reason')
+            .eq('tech_id', currentUser.id);
+        const reportMap = {};
+        (reports || []).forEach(r => { reportMap[r.order_id] = r.reason; });
+
+        const REASON_STYLE = {
+            '연기':      { bg: '#eff6ff', border: '#2563eb', text: '#1d4ed8', icon: '📅' },
+            '취소':      { bg: '#fee2e2', border: '#dc2626', text: '#dc2626', icon: '❌' },
+            '연락불가':  { bg: '#fef3c7', border: '#f59e0b', text: '#b45309', icon: '📵' },
+            '현장부적합':{ bg: '#fdf4ff', border: '#7c3aed', text: '#7c3aed', icon: '🚧' },
+            '기타':      { bg: '#f1f5f9', border: '#64748b', text: '#475569', icon: '📝' },
+        };
+
+        el.innerHTML = filteredData.map(order => {
+            const models = (order.models_data || []).map(m => typeof m === 'string' ? { name: m, qty: 1 } : m);
+            const done = order.status === 'done';
+            const reason = reportMap[order.id];
+            const rs = reason ? (REASON_STYLE[reason] || REASON_STYLE['기타']) : null;
+
+            let cardStyle = '';
+            let badgeHtml = '';
+            let progressHtml = '';
+
+            if (done) {
+                cardStyle = 'done';
+                badgeHtml = `<span class="badge badge-green" style="float:right">✅ 완료</span>`;
+            } else if (reason) {
+                cardStyle = '';
+                badgeHtml = `<span style="float:right;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;
+                    background:${rs.bg};border:1.5px solid ${rs.border};color:${rs.text};">
+                    ${rs.icon} ${reason}</span>`;
+                progressHtml = `<div class="progress-bar"><div class="progress-fill" style="width:0%;background:${rs.border};"></div></div>`;
+            } else {
+                badgeHtml = `<span class="badge badge-gray" style="float:right">⏳ 대기</span>`;
+                progressHtml = `<div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>`;
+            }
+
+            // 모델명 목록 표시 (font-size는 CSS 변수로 제어, 버튼으로 조절 가능)
+            const modelListHtml = !done ? `
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;">
+                    ${models.map(m => {
+                        const name = m.name || m;
+                        const qty = m.qty || 1;
+                        const checkedCnt = allOrderModels.filter(om => om.orderId === order.id && om.model === name).reduce((sum, om) => sum + om.checked, 0);
+                        const isDone = checkedCnt >= qty;
+                        return `<div class="model-font-size" style="display:flex;justify-content:space-between;padding:2px 0;
+                            ${isDone ? 'color:#94a3b8;text-decoration:line-through;' : 'color:#b91c1c;font-weight:600;'}">
+                            <span>${name}</span>
+                            <span>${isDone ? '✅' : `${checkedCnt}/${qty}`}</span>
+                        </div>`;
+                    }).join('')}
+                </div>` : '';
+
+            return `<div class="order-card ${cardStyle}" style="${rs && !done ? `border-color:${rs.border};background:${rs.bg};` : ''}" onclick="openOrderDetail('${order.id}')">
+                <div class="order-title">의뢰서 ${order.order_num}</div>
+                <div class="order-meta">${order.job_date} · 자재 ${models.length}개
+                    ${badgeHtml}
+                </div>
+                ${progressHtml}
+                ${modelListHtml}
+            </div>`;
+        }).join('');
+    }
+
+    async function openOrderDetail(orderId) {
+        const { data: order } = await sb.from('orders').select('*').eq('id', orderId).single();
+        if (!order) return;
+
+        currentOrder = order;
+        currentOrderModels = (order.models_data || []).map(m => typeof m === 'string' ? { name: m, qty: 1 } : m);
+        // 가정설치매장품 제외
+        currentOrderModels = currentOrderModels.filter(m => !(m.name || m).includes('가정설치매장품'));
+        checkedModels = new Map();
+        selectedReason = null;
+        // 미완료 패널 초기화 (닫힌 상태)
+        const rPanel = document.getElementById('reasonPanel');
+        const rIcon  = document.getElementById('reasonToggleIcon');
+        if (rPanel) { rPanel.style.display = 'none'; rIcon.textContent = '＋'; }
+        const rBtn = document.querySelector('.btn-red');
+        if (rBtn) { rBtn.disabled = false; rBtn.textContent = '📤 관리자에게 보고'; }
+        const rMemo = document.getElementById('techReasonMemo');
+        if (rMemo) rMemo.value = '';
+        document.querySelectorAll('.reason-btn').forEach(b => {
+            b.style.background = 'white';
+            b.style.borderColor = '#e2e8f0';
+            b.style.color = '#475569';
+        });
+
+        // 기존 검수 내역 불러오기 (같은 모델 여러 번 찍은 경우 횟수 누적)
+        const { data: done } = await sb.from('inspections')
+            .select('model_name')
+            .eq('order_id', orderId)
+            .eq('tech_id', currentUser.id);
+        if (done) done.forEach(d => {
+            checkedModels.set(d.model_name, (checkedModels.get(d.model_name) || 0) + 1);
+        });
+
+        document.getElementById('orderDetailTitle').textContent = `의뢰서 ${order.order_num}`;
+
+        // PDF 이미지
+        let pdfImages = order.pdf_images || [];
+        // jsonb가 문자열로 저장된 경우 파싱
+        if (typeof pdfImages === 'string') {
+            try { pdfImages = JSON.parse(pdfImages); } catch(e) { pdfImages = []; }
+        }
+        console.log('PDF 이미지:', pdfImages);
+        document.getElementById('orderPdfImages').innerHTML = pdfImages.length
+            ? pdfImages.map(url => `<img src="${url}" style="width:100%;border-radius:8px;margin-bottom:8px;border:1px solid #e2e8f0;" onerror="this.style.display='none'">`).join('')
+            : `<div style="color:#94a3b8;font-size:13px;text-align:center;padding:10px;">PDF 이미지 없음</div>`;
+
+        // 자재 목록
+        renderOrderModels();
+
+        document.getElementById('techStatus').innerHTML = '';
+        document.getElementById('techManualInput').value = '';
+        // techPhotoSection은 renderOrderModels에서 allDone 여부에 따라 표시 결정
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('orderDetailModal').classList.add('on');
+    }
+
+    function renderOrderModels() {
+        const total = currentOrderModels.length;
+        const allDone = total > 0 && currentOrderModels.every(item => {
+            const model = item.name || item;
+            const qty = item.qty || 1;
+            return (checkedModels.get(model) || 0) >= qty;
+        });
+        let doneCount = 0;
+
+        document.getElementById('orderModelList').innerHTML = currentOrderModels.map(item => {
+            const model = item.name || item;
+            const qty = item.qty || 1;
+            const checked = checkedModels.get(model) || 0;
+            const isDone = checked >= qty;
+            if (isDone) doneCount++;
+            const modelId = model.replace(/[^a-zA-Z0-9]/g, '');
+            return `<div id="tmodel-${modelId}" class="model-item ${isDone ? 'checked' : ''}">
+                • <b style="color:#b91c1c;">${model}</b>
+                <span style="float:right;">${isDone ? '✅' : `${checked}/${qty}개`}</span>
+            </div>`;
+        }).join('');
+
+        document.getElementById('techStatus').innerHTML = allDone
+            ? `<span style="color:#16a34a;font-weight:bold;">🎉 전체 검수 완료! 아래에서 완료 사진을 촬영해주세요.</span>`
+            : `<span style="color:#2563eb;font-weight:bold;">검수 대기 (${doneCount}/${total}개)</span>`;
+
+    }
+
+    function closeOrderDetail() {
+        document.getElementById('orderDetailModal').classList.remove('on');
+        stopScanFull(); stopPhotoScanFull();
+        loadTechOrders();
+    }
+
+    // 카메라 스캔 (통합 스캔으로 대체됨)
+
+    function stopScan() {}
+    function stopScanFull() {
+        if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+    }
+
+    function calcSharpness(imageData) {
+        const data = imageData.data, w = imageData.width;
+        let sum = 0, count = 0;
+        const step = 10;
+        for (let i = w; i < data.length/4 - w; i += step) {
+            const idx = i*4;
+            const gray = 0.299*data[idx] + 0.587*data[idx+1] + 0.114*data[idx+2];
+            const grayUp = 0.299*data[idx-w*4] + 0.587*data[idx-w*4+1] + 0.114*data[idx-w*4+2];
+            const grayDn = 0.299*data[idx+w*4] + 0.587*data[idx+w*4+1] + 0.114*data[idx+w*4+2];
+            sum += Math.abs(2*gray - grayUp - grayDn);
+            count++;
+        }
+        return count > 0 ? sum/count : 0;
+    }
+
+    async function analyzeImage(base64) {
+
+        try {
+            const res = await fetch(EDGE_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+                body: JSON.stringify({ base64 })
+            });
+            const data = await res.json();
+            const annotations = data.responses?.[0]?.textAnnotations || [];
+            const fullText = annotations[0]?.description?.toUpperCase() || '';
+
+            // WAJ + 확장자 합치기
+            const processedText = fullText.replace(/([A-Z0-9]+WAJ)[\r\n\s]+(AKOR|BKOR|EKOR)/g, '$1.$2');
+
+            const MODEL_PATTERN = /(SQ|FQ|SW|FW|PQ|PW|PC|PS|PU|UU|PN)[A-Z0-9]{4,12}(?:\.[A-Z0-9]+)?|M-[A-Z0-9]+(?:\.[A-Z0-9]+)?|(?:ACAH|ACAO|IST)-[A-Z0-9]+/g;
+            const foundModels = processedText.match(MODEL_PATTERN) || [];
+
+            if (!foundModels.length) {
+                document.getElementById('techOcrResult').innerHTML = `❌ 인식 실패. 다시 시도해주세요.<br><small style="color:#94a3b8">${fullText.substring(0,80)}</small>`;
+                return;
+            }
+
+            // 의뢰서 모델 목록 (base명 기준)
+            const orderModelNames = currentOrderModels.map(m => (m.name || m).split('.')[0]);
+
+            // 정규화 후 매칭 - 의뢰서에 없는 모델은 완전히 무시
+            let matchedCount = 0, notMatched = [];
+            for (const rawModel of foundModels) {
+                const base = rawModel.split('.')[0];
+                const ext = rawModel.includes('.') ? rawModel.split('.')[1] : '';
+                const model = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+
+                // 의뢰서 모델과 base명 완전 일치 여부 먼저 확인 (부분 매칭 방지)
+                if (!orderModelNames.includes(base)) continue;
+
+                const target = currentOrderModels.find(m => (m.name || m) === model);
+                if (target) {
+                    const qty = target.qty || 1;
+                    const checked = checkedModels.get(model) || 0;
+                    if (checked < qty) {
+                        // 수량 미달인 경우만 추가
+                        checkedModels.set(model, checked + 1);
+                        matchedCount++;
+                        const { error: insErr } = await sb.from('inspections').insert({
+                            company_id: currentUser.company_id,
+                            order_id: currentOrder.id,
+                            tech_id: currentUser.id,
+                            model_name: model
+                        });
+                        if (insErr) {
+                            console.error('검수 저장 실패:', insErr);
+                            checkedModels.set(model, checked); // 롤백
+                        }
+                    } else {
+                        notMatched.push(`${model}(이미 ${qty}개 완료)`);
+                    }
+                } else {
+                    notMatched.push(model);
+                }
+            }
+
+            renderOrderModels();
+
+            let html = '';
+            if (matchedCount > 0) html += `<div style="color:#16a34a;font-weight:bold;">✅ ${matchedCount}개 검수 완료!</div>`;
+            if (notMatched.length > 0) html += `<div style="color:#94a3b8;font-size:12px;">의뢰서 외: ${notMatched.join(', ')}</div>`;
+            if (!matchedCount && !notMatched.length) html = '❌ 일치하는 모델 없음';
+            document.getElementById('techOcrResult').innerHTML = html;
+
+        } catch(err) {
+            document.getElementById('techOcrResult').innerHTML = '❌ 오류: ' + err.message;
+        }
+    }
+
+    // 수동 입력
+    async function techCheckModel() {
+        const rawInput = document.getElementById('techManualInput').value.trim().toUpperCase();
+        const base = rawInput.split('.')[0];
+        const ext = rawInput.includes('.') ? rawInput.split('.')[1] : '';
+        const model = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+
+        if (!model) { alert('모델명을 입력해주세요.'); return; }
+
+        const target = currentOrderModels.find(m => (m.name || m) === model);
+        if (target) {
+            const qty = target.qty || 1;
+            const checked = checkedModels.get(model) || 0;
+            if (checked < qty) {
+                // 수량 미달인 경우만 추가
+                checkedModels.set(model, checked + 1);
+                const { error } = await sb.from('inspections').insert({
+                    company_id: currentUser.company_id,
+                    order_id: currentOrder.id,
+                    tech_id: currentUser.id,
+                    model_name: model
+                });
+                if (error) {
+                    console.error('저장 실패:', error);
+                    document.getElementById('techStatus').innerHTML = `<span style="color:#dc2626;">❌ 저장 실패: ${error.message}</span>`;
+                    checkedModels.set(model, checked); // 롤백
+                    return;
+                }
+                document.getElementById('techStatus').innerHTML =
+                    `<span style="color:#16a34a;font-weight:bold;">✅ ${model} (${checked + 1}/${qty}개)</span>`;
+            } else {
+                document.getElementById('techStatus').innerHTML =
+                    `<span style="color:#f59e0b;font-weight:bold;">⚠️ ${model} 이미 ${qty}개 모두 완료됐습니다.</span>`;
+            }
+            renderOrderModels();
+            document.getElementById('techManualInput').value = '';
+        } else {
+            document.getElementById('techStatus').innerHTML = `<span style="color:#dc2626;font-weight:bold;">⚠️ 목록에 없는 품목입니다.</span>`;
+        }
+    }
+
+    // 완료 사진 촬영
+    document.getElementById('techStartPhotoBtn').addEventListener('click', async function() {
+        document.getElementById('photoContainer').style.display = 'block';
+        document.getElementById('photoPreview').style.display = 'none';
+        try {
+            // 기존 stream 완전히 종료 후 새로 열기 (까만 화면 방지)
+            if (photoStream) { photoStream.getTracks().forEach(t => t.stop()); photoStream = null; }
+            const photoVideo = document.getElementById('photo-video');
+            photoVideo.srcObject = null;
+            photoStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            photoVideo.srcObject = photoStream;
+            await photoVideo.play();
+        } catch(err) {
+            document.getElementById('techPhotoStatus').textContent = '❌ 카메라 실행 실패: ' + err.message;
+        }
+    });
+
+    document.getElementById('techCapturePhotoBtn').addEventListener('click', function() {
+        const video = document.getElementById('photo-video');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        stopPhotoScan();
+        document.getElementById('capturedPhoto').src = canvas.toDataURL('image/jpeg', 0.9);
+        document.getElementById('capturedPhoto').dataset.base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+        document.getElementById('photoPreview').style.display = 'block';
+    });
+
+    document.getElementById('techCancelPhotoBtn').addEventListener('click', stopPhotoScan);
+    document.getElementById('techRetakePhotoBtn').addEventListener('click', async function() {
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('photoContainer').style.display = 'block';
+        photoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('photo-video').srcObject = photoStream;
+        await document.getElementById('photo-video').play();
+    });
+
+    document.getElementById('techSavePhotoBtn').addEventListener('click', async function() {
+        const base64 = document.getElementById('capturedPhoto').dataset.base64;
+        if (!base64) return;
+        document.getElementById('techPhotoStatus').textContent = '⏳ 저장 중...';
+        this.disabled = true;
+
+        try {
+            const byteArr = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+            const blob = new Blob([byteArr], { type: 'image/jpeg' });
+            const now = new Date();
+            // 한글 파일명 금지 → 사용자 ID 사용 (전체 완료 사진이므로 order번호 없이)
+            const fileName = `${currentUser.company_id}/${currentUser.id}_alldone_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}.jpg`;
+
+            const { error: uploadError } = await sb.storage.from('inspection-photos').upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = sb.storage.from('inspection-photos').getPublicUrl(fileName);
+            const photoUrl = urlData?.publicUrl || null;
+
+            // photo_url이 없으면 완료 처리 안 함
+            if (!photoUrl) {
+                document.getElementById('techPhotoStatus').innerHTML = '❌ 사진 저장 실패. 다시 촬영해주세요.';
+                this.disabled = false;
+                return;
+            }
+
+            // 오늘 의뢰서 중 미완료(연기/취소 제외) 전체에 동일 사진 + 완료 처리
+            const { data: reports } = await sb.from('order_reports').select('order_id').eq('tech_id', currentUser.id);
+            const reportedIds = new Set((reports || []).map(r => r.order_id));
+            const targetOrders = (window.currentTechOrders || []).filter(o => o.status !== 'done' && !reportedIds.has(o.id));
+
+            const { error: updateError } = await sb.from('orders')
+                .update({ status: 'done', photo_url: photoUrl })
+                .in('id', targetOrders.map(o => o.id));
+            if (updateError) throw updateError;
+
+            document.getElementById('techPhotoStatus').innerHTML = `✅ 제출 완료! 의뢰서 ${targetOrders.length}건 전체가 관리자에게 전송됐습니다.`;
+            document.getElementById('techSavePhotoBtn').textContent = '✅ 제출됨';
+
+            // 의뢰서 목록 새로고침 (전체 완료 표시 반영)
+            await loadTechOrders();
+
+        } catch(err) {
+            document.getElementById('techPhotoStatus').textContent = '❌ 저장 실패: ' + err.message;
+            this.disabled = false;
+        }
+    });
+
+    function stopPhotoScan() {
+        // stream 유지, 화면만 숨김
+        document.getElementById('photoContainer').style.display = 'none';
+    }
+    function stopPhotoScanFull() {
+        // 모달 닫을 때만 완전 종료
+        if (photoStream) { photoStream.getTracks().forEach(t => t.stop()); photoStream = null; }
+        document.getElementById('photoContainer').style.display = 'none';
+    }
+
+    // ════════════════════════════════
+    // 관리자 화면
+    // ════════════════════════════════
+    function adminTab(tab) {
+        document.querySelectorAll('#adminScreen .tab-btn').forEach(b => b.classList.remove('on'));
+        event.target.classList.add('on');
+        document.getElementById('adminDashboard').style.display  = tab === 'dashboard' ? 'block' : 'none';
+        document.getElementById('adminHistory').style.display    = tab === 'history'   ? 'block' : 'none';
+        document.getElementById('adminReports').style.display    = tab === 'reports'   ? 'block' : 'none';
+        document.getElementById('adminUpload').style.display     = tab === 'upload'    ? 'block' : 'none';
+        document.getElementById('adminTechs').style.display      = tab === 'techs'     ? 'block' : 'none';
+        if (tab === 'dashboard') loadAdminDashboard();
+        if (tab === 'techs') loadTechList();
+        if (tab === 'reports') loadAdminReports();
+        if (tab === 'history') {
+            const today = getKSTDate();
+            document.getElementById('historyDate').value = today;
+            loadHistory();
+        }
+    }
+
+    // ── 기사님: 미완료 패널 토글 ──
+    function toggleReasonPanel() {
+        const panel = document.getElementById('reasonPanel');
+        const icon  = document.getElementById('reasonToggleIcon');
+        const isOpen = panel.style.display === 'block';
+        panel.style.display = isOpen ? 'none' : 'block';
+        icon.textContent = isOpen ? '＋' : '－';
+    }
+
+    // ── 기사님: 사유 선택 버튼 ──
+    let selectedReason = null;
+    function selectReason(btn, reason) {
+        // 모든 버튼 초기화
+        document.querySelectorAll('.reason-btn').forEach(b => {
+            b.style.background = 'white';
+            b.style.borderColor = '#e2e8f0';
+            b.style.color = '#475569';
+        });
+        // 선택된 버튼 강조
+        btn.style.background = '#fee2e2';
+        btn.style.borderColor = '#dc2626';
+        btn.style.color = '#dc2626';
+        selectedReason = reason;
+        document.getElementById('techReasonStatus').textContent = '';
+    }
+
+    // ── 기사님: 미완료 사유 제출 ──
+    async function submitReason() {
+        if (!selectedReason) {
+            document.getElementById('techReasonStatus').innerHTML =
+                '<span style="color:#dc2626;">사유를 선택해주세요.</span>';
+            return;
+        }
+        const memo = document.getElementById('techReasonMemo').value.trim();
+        if (!memo) {
+            document.getElementById('techReasonStatus').innerHTML =
+                '<span style="color:#dc2626;">내용을 입력해주세요. (고객이름 / 사유 / 일자 등)</span>';
+            return;
+        }
+        document.getElementById('techReasonStatus').textContent = '⏳ 전송 중...';
+
+        const { error } = await sb.from('order_reports').insert({
+            company_id: currentUser.company_id,
+            order_id:   currentOrder.id,
+            tech_id:    currentUser.id,
+            tech_name:  currentUser.name,
+            order_num:  currentOrder.order_num,
+            reason:     selectedReason,
+            memo:       memo || null,
+            reported_at: new Date().toISOString()
+        });
+
+        if (error) {
+            document.getElementById('techReasonStatus').innerHTML =
+                `<span style="color:#dc2626;">❌ 전송 실패: ${error.message}</span>`;
+            return;
+        }
+
+        document.getElementById('techReasonStatus').innerHTML =
+            '<span style="color:#16a34a;font-weight:bold;">✅ 관리자에게 보고 완료!</span>';
+
+        // 버튼 비활성화 (중복 제출 방지)
+        document.querySelector('.btn-red').disabled = true;
+        document.querySelector('.btn-red').textContent = '✅ 보고됨';
+    }
+
+    // ── 관리자: 미완료 사유 목록 조회 ──
+    async function loadAdminReports() {
+        const el = document.getElementById('adminReportsContent');
+        el.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">불러오는 중...</div>';
+
+        const today = getKSTDate();
+        const { data: reports, error } = await sb.from('order_reports')
+            .select('*')
+            .eq('company_id', currentUser.company_id)
+            .gte('reported_at', today + 'T00:00:00+09:00')
+            .lte('reported_at', today + 'T23:59:59+09:00')
+            .order('reported_at', { ascending: false });
+
+        if (error || !reports?.length) {
+            el.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:40px;">보고된 미완료 사유가 없습니다.</div>';
+            return;
+        }
+
+        const REASON_COLOR = {
+            '연기':     { bg: '#eff6ff', border: '#2563eb', text: '#1d4ed8' },
+            '취소':     { bg: '#fee2e2', border: '#dc2626', text: '#dc2626' },
+            '연락불가': { bg: '#fef3c7', border: '#f59e0b', text: '#b45309' },
+            '현장부적합':{ bg: '#fdf4ff', border: '#7c3aed', text: '#7c3aed' },
+            '기타':     { bg: '#f1f5f9', border: '#64748b', text: '#475569' },
+        };
+
+        // 사유별 집계
+        const counts = {};
+        reports.forEach(r => { counts[r.reason] = (counts[r.reason] || 0) + 1; });
+        const summaryHtml = Object.entries(counts).map(([reason, cnt]) => {
+            const c = REASON_COLOR[reason] || REASON_COLOR['기타'];
+            return `<div style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;
+                background:${c.bg};border:1.5px solid ${c.border};color:${c.text};margin:0 4px 6px 0;">
+                ${reason} ${cnt}건</div>`;
+        }).join('');
+
+        const listHtml = reports.map(r => {
+            const c = REASON_COLOR[r.reason] || REASON_COLOR['기타'];
+            const date = new Date(r.reported_at).toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+            return `<div style="border:1.5px solid ${c.border};border-radius:10px;padding:12px;margin-bottom:10px;background:${c.bg};">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div>
+                        <span style="font-weight:800;font-size:14px;color:${c.text};">${r.reason}</span>
+                        <span style="font-size:12px;color:#64748b;margin-left:8px;">의뢰서 ${r.order_num}번 · ${r.tech_name}</span>
+                    </div>
+                    <span style="font-size:11px;color:#94a3b8;">${date}</span>
+                </div>
+                ${r.memo ? `<div style="font-size:13px;color:#1e293b;background:white;border-radius:6px;padding:8px;border:1px solid #e2e8f0;">${r.memo}</div>` : ''}
+            </div>`;
+        }).join('');
+
+        el.innerHTML = `
+            <div style="margin-bottom:14px;">${summaryHtml}</div>
+            ${listHtml}
+        `;
+    }
+
+    async function loadAdminDashboard() {
+        const today = getKSTDate();
+
+        const { data: orders } = await sb.from('orders').select('*, users(name)')
+            .eq('company_id', currentUser.company_id)
+            .eq('job_date', today);
+        if (!orders) return;
+
+        // 검수 내역 조회
+        const { data: inspections } = await sb.from('inspections').select('*').eq('company_id', currentUser.company_id);
+        const inspByOrder = {};
+        (inspections || []).forEach(ins => {
+            if (!inspByOrder[ins.order_id]) inspByOrder[ins.order_id] = [];
+            inspByOrder[ins.order_id].push(ins.model_name);
+        });
+
+        // 미완료 사유 조회
+        const { data: todayReports } = await sb.from('order_reports')
+            .select('*')
+            .eq('company_id', currentUser.company_id)
+            .gte('reported_at', today + 'T00:00:00+09:00')
+            .lte('reported_at', today + 'T23:59:59+09:00');
+        const reportByOrder = {};
+        (todayReports || []).forEach(r => { reportByOrder[r.order_id] = r; });
+
+        // 미완료 탭 N 뱃지 표시
+        const reportsTabBtn = document.getElementById('reportsTabBtn');
+        if (reportsTabBtn) {
+            const cnt = todayReports?.length || 0;
+            reportsTabBtn.innerHTML = cnt > 0
+                ? `⚠️ 미완료 <span style="display:inline-block;background:#dc2626;color:white;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:900;line-height:18px;text-align:center;margin-left:2px;">${cnt}</span>`
+                : '⚠️ 미완료';
+        }
+
+        const total = orders.length;
+        const done = orders.filter(o => o.status === 'done').length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statDone').textContent = done;
+        document.getElementById('statPending').textContent = total - done;
+
+        // 기사별 현황
+        const byTech = {};
+        orders.forEach(o => {
+            const name = o.users?.name || o.tech_name;
+            if (!byTech[name]) byTech[name] = { total: 0, done: 0, orders: [] };
+            byTech[name].total++;
+            if (o.status === 'done') byTech[name].done++;
+            byTech[name].orders.push(o);
+        });
+
+        // 검수 촬영 사진 조회
+        const today2 = getKSTDate();
+        const { data: scanPhotos } = await sb.from('scan_photos')
+            .select('*')
+            .eq('company_id', currentUser.company_id)
+            .gte('taken_at', today2 + 'T00:00:00+09:00')
+            .lte('taken_at', today2 + 'T23:59:59+09:00')
+            .order('taken_at', { ascending: true });
+
+        const scanPhotosByTech = {};
+        (scanPhotos || []).forEach(p => {
+            if (!scanPhotosByTech[p.tech_id]) scanPhotosByTech[p.tech_id] = [];
+            scanPhotosByTech[p.tech_id].push(p);
+        });
+
+        document.getElementById('adminTechStatus').innerHTML = Object.entries(byTech).map(([name, s]) => {
+            const pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+            const ordersHtml = s.orders.map(o => {
+                const isDone = o.status === 'done';
+                const allModels = (o.models_data || []).map(m => m.name || m);
+                const checkedModels = inspByOrder[o.id] || [];
+                const report = reportByOrder[o.id] || null;
+
+                const REASON_STYLE = {
+                    '연기':      { bg: '#eff6ff', border: '#2563eb', text: '#1d4ed8', icon: '📅' },
+                    '취소':      { bg: '#fee2e2', border: '#dc2626', text: '#dc2626', icon: '❌' },
+                    '연락불가':  { bg: '#fef3c7', border: '#f59e0b', text: '#b45309', icon: '📵' },
+                    '현장부적합':{ bg: '#fdf4ff', border: '#7c3aed', text: '#7c3aed', icon: '🚧' },
+                    '기타':      { bg: '#f1f5f9', border: '#64748b', text: '#475569', icon: '📝' },
+                };
+                const rs = report ? (REASON_STYLE[report.reason] || REASON_STYLE['기타']) : null;
+
+                // 카드 배경/테두리
+                let cardBg = isDone ? '#f0fdf4' : '#fafafa';
+                let cardBorder = isDone ? '#16a34a' : '#e2e8f0';
+                if (report && !isDone) { cardBg = rs.bg; cardBorder = rs.border; }
+
+                // 상태 배지
+                let statusBadge = '';
+                if (isDone) {
+                    statusBadge = `<span class="badge badge-green">✅ 완료</span>`;
+                } else if (report) {
+                    statusBadge = `<span style="padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;background:${rs.bg};border:1.5px solid ${rs.border};color:${rs.text};">${rs.icon} ${report.reason}</span>`;
+                } else {
+                    statusBadge = `<span class="badge badge-gray">⏳ ${checkedModels.length}/${allModels.length}</span>`;
+                }
+
+                // 자재별 검수 현황 (base명 기준으로 비교)
+                const checkedBases = checkedModels.map(cm => cm.split('.')[0]);
+                const modelsHtml = allModels.map(m => {
+                    const mBase = m.split('.')[0];
+                    const isChecked = checkedBases.includes(mBase);
+                    return `<div style="padding:5px 8px;font-size:13px;display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;">
+                        <span style="${isChecked ? 'text-decoration:line-through;color:#94a3b8;' : 'color:#b91c1c;font-weight:600;'}">${m}</span>
+                        <span>${isChecked ? '✅' : '⬜'}</span>
+                    </div>`;
+                }).join('');
+
+                return `<div style="padding:10px;border:1.5px solid ${cardBorder};border-radius:8px;margin-bottom:8px;background:${cardBg};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-weight:700;font-size:14px;">의뢰서 ${o.order_num}</span>
+                        ${statusBadge}
+                    </div>
+                    <div style="background:white;border-radius:6px;border:1px solid #e2e8f0;margin-bottom:8px;">
+                        ${modelsHtml}
+                    </div>
+                    <div id="scan-photos-${o.id}" style="margin-top:8px;display:none;">
+                        <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">📷 검수 촬영 사진</div>
+                        <div style="position:relative;overflow:hidden;border-radius:8px;">
+                            <div id="scan-swipe-${o.id}" style="display:flex;overflow-x:auto;gap:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // 해당 기사님 검수 사진
+            const techId = s.orders[0]?.tech_id;
+            const techScanPhotos = techId ? (scanPhotosByTech[techId] || []) : [];
+            // 완료 사진 (전체 의뢰서 동일 사진 1장)
+            const completedOrder = s.orders.find(o => o.status === 'done' && o.photo_url);
+            const completePhotoHtml = completedOrder ? `
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:6px;">📸 전체 검수 완료 사진</div>
+                    <img src="${completedOrder.photo_url}" style="width:100%;max-width:300px;border-radius:6px;border:1px solid #16a34a;cursor:pointer;"
+                        onclick="window.open('${completedOrder.photo_url}','_blank')">
+                </div>` : '';
+
+            const scanPhotosHtml = techScanPhotos.length ? `
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:6px;">📷 검수 촬영 사진 (${techScanPhotos.length}장)</div>
+                    <div style="display:flex;overflow-x:auto;gap:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;">
+                        ${techScanPhotos.map(p => `
+                            <div style="flex:0 0 auto;width:120px;scroll-snap-align:start;">
+                                <img src="${p.photo_url}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;border:1px solid #2563eb;cursor:pointer;"
+                                    onclick="window.open('${p.photo_url}','_blank')"
+                                    onerror="this.style.display='none'">
+                                <div style="font-size:10px;color:#94a3b8;text-align:center;margin-top:2px;">
+                                    ${new Date(p.taken_at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}
+                                </div>
+                            </div>`).join('')}
+                    </div>
+                </div>` : '';
+
+            const techKey = name.replace(/[^a-zA-Z0-9]/g,'') + Object.keys(byTech).indexOf(name);
+            const detailId = `detail-${techKey}`;
+            return `<div class="card" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;"
+                    onclick="const el=document.getElementById('${detailId}');el.style.display=el.style.display==='none'?'block':'none'">
+                    <div>
+                        <div style="font-weight:800;font-size:15px;">👷 ${name}</div>
+                        <div style="font-size:12px;color:#64748b;">${s.done}/${s.total} 완료</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="badge ${pct===100?'badge-green':'badge-gray'}">${pct}%</span>
+                        <span style="font-size:12px;color:#94a3b8;">▼ 상세</span>
+                    </div>
+                </div>
+                <div class="progress-bar" style="margin-bottom:10px;">
+                    <div class="progress-fill ${pct===100?'done':''}" style="width:${pct}%"></div>
+                </div>
+                ${completePhotoHtml}
+                ${scanPhotosHtml}
+                <div id="${detailId}" style="display:none;">${ordersHtml}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // PDF 업로드 및 기사 배분
+    async function adminUploadPdf() {
+        const file = document.getElementById('adminPdfFile').files[0];
+        if (!file) { alert('PDF 파일을 선택해주세요.'); return; }
+
+        const statusEl = document.getElementById('adminUploadStatus');
+        statusEl.textContent = '📄 PDF 파싱 중...';
+
+        const reader = new FileReader();
+        reader.onload = async function() {
+            try {
+                const pdfDoc = await pdfjsLib.getDocument({
+                    data: new Uint8Array(this.result),
+                    cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/cmaps/',
+                    cMapPacked: true
+                }).promise;
+
+                const totalPages = pdfDoc.numPages;
+                statusEl.textContent = `📄 ${totalPages}페이지 파싱 중...`;
+
+                // 기사 목록 조회
+                const { data: techs } = await sb.from('users')
+                    .select('*').eq('company_id', currentUser.company_id).eq('role', 'tech');
+
+                const TECH_NAMES = (techs || []).map(t => t.name);
+                const TECH_MAP = Object.fromEntries((techs || []).map(t => [t.name, t.id]));
+
+                // ── STEP 1: 텍스트 파싱 (모든 페이지, 빠르게) ──
+                const parsed = [];
+                for (let i = 1; i <= totalPages; i++) {
+                    statusEl.textContent = `📄 파싱 중 (${i}/${totalPages})...`;
+                    const page = await pdfDoc.getPage(i);
+                    const tc = await page.getTextContent();
+                    const text = tc.items.map(item => item.str || '').join(' ').replace(/\s+/g, ' ').trim();
+                    const compressed = text.replace(/\s/g, '');
+
+                    // 기사명 추출
+                    let techName = null;
+                    for (const name of TECH_NAMES) {
+                        if (compressed.includes(name)) { techName = name; break; }
+                    }
+                    if (!techName) continue;
+
+                    // 협력업체 블록만 잘라냄
+                    let partnerText = text;
+                    if (text.includes('설치기사고객명')) {
+                        partnerText = text.split('설치기사고객명')[0];
+                    } else if (text.includes('설치기사연락처')) {
+                        partnerText = text.split('설치기사연락처')[0];
+                    }
+                    const upper = partnerText.toUpperCase();
+
+                    // 세트모델명 추출
+                    const setMatch = upper.match(
+                        /세트모델명\s*:\s*((?:SQ|FQ|SW|FW|PQ|PW|PC|PS|PU|UU|PN|M-)[A-Z0-9\-\.]+)/
+                    );
+                    const setModelBase = setMatch ? setMatch[1].split('.')[0] : null;
+
+                    // ── 코웨이 의뢰서 처리 ──
+                    // 코웨이 코드 → 모델명 매핑
+                    const COWAY_MAP = {
+                        '4101324': 'ACAH-061AA',
+                        '4101325': 'ACAO-061AA',
+                        '4101326': 'ACAH-065AA',
+                        '4101327': 'ACAO-065AA',
+                        '4101328': 'ACAH-085AA',
+                        '4101329': 'ACAO-085AA',
+                        '4101330': 'ACAH-105AA',
+                        '4101331': 'ACAO-105AA',
+                        '3126252': 'IST-01HG',
+                    };
+
+                    // 코웨이 의뢰서 감지 (LKR 주문서번호 또는 코웨이 코드 포함)
+                    const isCoway = /LKR\d+/.test(upper) || Object.keys(COWAY_MAP).some(code => upper.includes(code));
+
+                    if (isCoway) {
+                        // 코웨이 코드 추출 후 모델명으로 변환
+                        const cowayModels = [];
+                        const cowayQtyRE = /(?:LKR[A-Z0-9]+-[\d.]+)\s+(\d{1,2})/g;
+                        const cowayQtyList = [];
+                        let cqMatch;
+                        while ((cqMatch = cowayQtyRE.exec(upper)) !== null) {
+                            cowayQtyList.push(parseInt(cqMatch[1], 10));
+                        }
+
+                        let cowayIdx = 0;
+                        for (const [code, modelName] of Object.entries(COWAY_MAP)) {
+                            if (upper.includes(code)) {
+                                cowayModels.push({
+                                    name: modelName,
+                                    qty: cowayQtyList[cowayIdx] || 1
+                                });
+                                cowayIdx++;
+                            }
+                        }
+
+                        if (cowayModels.length) {
+                            parsed.push({ techName, models: cowayModels, pageNum: i, pageObj: page, pdfImageUrl: null });
+                        }
+                        continue; // 코웨이는 일반 모델 추출 스킵
+                    }
+
+                    // ③ 가정설치매장품 순번 추출 (해당 순번의 모델 제외용)
+                    // 패턴: "5 가정설치매장품배차확정" → 5번째 모델 제외
+                    const excludeIdxSet = new Set();
+                    // 순번은 1~10 단독 숫자여야 함 (앞에 공백 또는 시작, 뒤에 공백+가정설치매장품)
+                    // 순번 앞에 반드시 공백이 있어야 함 (예: " 5 가정설치매장품")
+                    const excludeRE = /(?<=\s)([1-9]|10)\s*가정설치매장품/g;
+                    let exMatch;
+                    while ((exMatch = excludeRE.exec(upper)) !== null) {
+                        excludeIdxSet.add(parseInt(exMatch[1]) - 1); // 0-based index
+                    }
+
+
+                    // 모델명 목록 추출
+                    const MODEL_RE = /((?:SQ|FQ|SW|FW|PQ|PW|PC|PS|PU|UU|PN)[A-Z0-9]{4,12}(?:\.[A-Z0-9]+)?|M-[A-Z0-9]+(?:\.[A-Z0-9]+)?)/g;
+                    const modelList = [];
+                    const seenModels = new Set();
+                    let mMatch;
+                    while ((mMatch = MODEL_RE.exec(upper)) !== null) {
+                        const raw = mMatch[1];
+                        const base = raw.split('.')[0];
+                        const ext  = raw.includes('.') ? raw.split('.')[1] : '';
+                        const clean = base === 'SQ06FA1WAJ' ? `${base}.${ext}` : base;
+                        if (setModelBase && clean === setModelBase) continue;
+                        if (!seenModels.has(clean)) {
+                            seenModels.add(clean);
+                            modelList.push(clean);
+                        }
+                    }
+
+                    // 주문서번호 뒤 수량 추출
+                    // 주문특이사항에 포함된 잘못된 숫자(예: 긴 전화번호/접수번호) 오매칭 방지를 위해
+                    // 마지막 모델명이 발견된 위치 이후부터만 검색
+                    let lastModelEndIdx = 0;
+                    MODEL_RE.lastIndex = 0;
+                    let lastModelMatch;
+                    while ((lastModelMatch = MODEL_RE.exec(upper)) !== null) {
+                        lastModelEndIdx = MODEL_RE.lastIndex;
+                    }
+                    const qtySearchText = upper.slice(lastModelEndIdx);
+
+                    const QTY_RE = /(?:\d{10,}(?:-[\d.]+)?|[A-Z]{2,3}\d{9,}(?:-[\d.]+)?)\s+(\d{1,2})\b/g;
+                    const qtyList = [];
+                    let qMatch;
+                    while ((qMatch = QTY_RE.exec(qtySearchText)) !== null) {
+                        qtyList.push(parseInt(qMatch[1], 10));
+                    }
+
+                    const models = modelList
+                        .map((name, idx) => ({ name, qty: qtyList[idx] || 1 }))
+                        .filter((m, idx) => !excludeIdxSet.has(idx)); // 가정설치매장품 순번 제외
+
+
+                    if (!models.length) continue;
+
+                    // pdfDoc page 객체 저장 (이미지 렌더링용)
+                    parsed.push({ techName, models, pageNum: i, pageObj: page, pdfImageUrl: null });
+                }
+
+                if (!parsed.length) {
+                    statusEl.textContent = '⚠️ 파싱된 의뢰서가 없습니다. 기사님 이름을 확인해주세요.';
+                    return;
+                }
+
+                // ── STEP 2: 이미지 렌더링 (base64로 변환, Storage 업로드 없음) ──
+                for (let idx = 0; idx < parsed.length; idx++) {
+                    const p = parsed[idx];
+                    statusEl.textContent = `🖼️ 이미지 변환 중 (${idx + 1}/${parsed.length})...`;
+                    try {
+                        const canvas = document.createElement('canvas');
+                        // scale 0.8 / 품질 0.5 → 파일 작게 유지하면서 텍스트 읽기 충분
+                        const viewport = p.pageObj.getViewport({ scale: 0.8 });
+                        canvas.width = viewport.width; canvas.height = viewport.height;
+                        await p.pageObj.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                        // base64 data URL 그대로 저장 → Storage 업로드 불필요
+                        p.imgDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                    } catch (e) {
+                        console.warn(`이미지 렌더링 실패 (페이지${p.pageNum}):`, e.message);
+                        p.imgDataUrl = null;
+                    }
+                }
+
+                // ── STEP 3: DB 저장 (이미지 포함, 한 번에) ──
+                statusEl.textContent = `💾 의뢰서 저장 중...`;
+                const techCountMap = {};
+                const toInsert = [];
+
+                for (const p of parsed) {
+                    if (!techCountMap[p.techName]) techCountMap[p.techName] = 0;
+                    techCountMap[p.techName]++;
+
+                    const techId = TECH_MAP[p.techName];
+                    if (!techId) continue;
+
+                    toInsert.push({
+                        company_id: currentUser.company_id,
+                        tech_id: techId,
+                        tech_name: p.techName,
+                        job_date: getKSTDate(),
+                        order_num: techCountMap[p.techName],
+                        models_data: p.models,
+                        // data URL 그대로 저장 → 기사 화면에서 <img src="..."> 로 바로 표시
+                        pdf_images: p.imgDataUrl ? [p.imgDataUrl] : [],
+                        status: 'pending'
+                    });
+                }
+
+                // 오늘 날짜 기존 의뢰서만 삭제 + 연관 inspections도 삭제
+                const today = getKSTDate();
+                const { data: existingOrders } = await sb.from('orders')
+                    .select('id')
+                    .eq('company_id', currentUser.company_id)
+                    .eq('job_date', today);
+                if (existingOrders?.length) {
+                    const existingIds = existingOrders.map(o => o.id);
+                    await sb.from('inspections').delete().in('order_id', existingIds);
+                    await sb.from('order_reports').delete().in('order_id', existingIds);
+                }
+                await sb.from('orders')
+                    .delete()
+                    .eq('company_id', currentUser.company_id)
+                    .eq('job_date', today);
+
+                const { error: insertErr } = await sb.from('orders').insert(toInsert);
+                if (insertErr) throw insertErr;
+
+                statusEl.innerHTML = `✅ 완료! ${toInsert.length}개 의뢰서 배분됨`;
+                loadAdminDashboard();
+
+            } catch(err) {
+                statusEl.textContent = '❌ 오류: ' + err.message;
+                console.error(err);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 날짜별 내역 조회
+    async function loadHistory() {
+        const date = document.getElementById('historyDate').value;
+        if (!date) { alert('날짜를 선택해주세요.'); return; }
+
+        document.getElementById('historyContent').innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">불러오는 중...</div>';
+
+        // 선택 날짜의 orders 조회
+        const { data: orders } = await sb.from('orders')
+            .select('*')
+            .eq('company_id', currentUser.company_id)
+            .eq('job_date', date)
+            .order('tech_name', { ascending: true });
+
+        if (!orders || orders.length === 0) {
+            document.getElementById('historyContent').innerHTML = `<div style="text-align:center;color:#94a3b8;padding:30px;">${date} 날짜의 검수 내역이 없습니다.</div>`;
+            return;
+        }
+
+        // 해당 날짜 inspections 조회
+        const orderIds = orders.map(o => o.id);
+        const { data: inspections } = await sb.from('inspections')
+            .select('*')
+            .in('order_id', orderIds);
+
+        const inspByOrder = {};
+        (inspections || []).forEach(ins => {
+            if (!inspByOrder[ins.order_id]) inspByOrder[ins.order_id] = [];
+            inspByOrder[ins.order_id].push(ins.model_name);
+        });
+
+        // 기사별 그룹핑
+        const byTech = {};
+        orders.forEach(o => {
+            if (!byTech[o.tech_name]) byTech[o.tech_name] = [];
+            byTech[o.tech_name].push(o);
+        });
+
+        let html = `<div style="font-size:13px;color:#64748b;margin-bottom:12px;">📅 ${date} 검수 내역 (총 ${orders.length}건)</div>`;
+
+        Object.entries(byTech).forEach(([techName, techOrders], idx) => {
+            const techDone = techOrders.filter(o => o.status === 'done').length;
+            const pct = Math.round(techDone/techOrders.length*100);
+            const detailId = `hist-detail-${idx}`;
+
+            const ordersHtml = techOrders.map(o => {
+                const isDone = o.status === 'done';
+                const allModels = (o.models_data || []).map(m => m.name || m);
+                const checkedList = inspByOrder[o.id] || [];
+
+                const checkedBases2 = checkedList.map(cm => cm.split('.')[0]);
+                const modelsHtml = allModels.map(m => {
+                    const isChecked = checkedBases2.includes(m.split('.')[0]);
+                    return `<div style="padding:5px 8px;font-size:13px;display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;">
+                        <span style="${isChecked?'text-decoration:line-through;color:#94a3b8;':'color:#b91c1c;font-weight:600;'}">${m}</span>
+                        <span>${isChecked?'✅':'⬜'}</span>
+                    </div>`;
+                }).join('');
+
+                return `<div style="border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;overflow:hidden;background:${isDone?'#f0fdf4':'white'};">
+                    <div style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;">
+                        <span style="font-weight:700;">의뢰서 ${o.order_num}</span>
+                        <span class="badge ${isDone?'badge-green':'badge-gray'}">${isDone?'✅ 완료':'⏳ '+checkedList.length+'/'+allModels.length}</span>
+                    </div>
+                    ${modelsHtml}
+                    ${isDone && o.photo_url ? `
+                        <div style="padding:10px;">
+                            <div style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:6px;">📸 검수 완료 사진</div>
+                            <img src="${o.photo_url}" style="width:100%;border-radius:6px;cursor:pointer;" onclick="window.open('${o.photo_url}','_blank')">
+                        </div>` : ''}
+                </div>`;
+            }).join('');
+
+            html += `<div class="card" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;"
+                    onclick="const d=document.getElementById('${detailId}');d.style.display=d.style.display==='none'?'block':'none'">
+                    <div>
+                        <div style="font-weight:800;font-size:15px;">👷 ${techName}</div>
+                        <div style="font-size:12px;color:#64748b;">${techDone}/${techOrders.length} 완료</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="badge ${pct===100?'badge-green':'badge-gray'}">${pct}%</span>
+                        <span style="font-size:12px;color:#94a3b8;">▼ 상세</span>
+                    </div>
+                </div>
+                <div class="progress-bar" style="margin-bottom:8px;">
+                    <div class="progress-fill ${pct===100?'done':''}" style="width:${pct}%"></div>
+                </div>
+                <div id="${detailId}" style="display:none;">${ordersHtml}</div>
+            </div>`;
+        });
+
+        document.getElementById('historyContent').innerHTML = html;
+
+        // 해당 날짜 미완료 사유 표시
+        const { data: dayReports } = await sb.from('order_reports')
+            .select('*')
+            .eq('company_id', currentUser.company_id)
+            .gte('reported_at', date + 'T00:00:00+09:00')
+            .lte('reported_at', date + 'T23:59:59+09:00')
+            .order('reported_at', { ascending: false });
+
+        if (dayReports?.length) {
+            const REASON_COLOR = {
+                '연기':      { bg: '#eff6ff', border: '#2563eb', text: '#1d4ed8', icon: '📅' },
+                '취소':      { bg: '#fee2e2', border: '#dc2626', text: '#dc2626', icon: '❌' },
+                '연락불가':  { bg: '#fef3c7', border: '#f59e0b', text: '#b45309', icon: '📵' },
+                '현장부적합':{ bg: '#fdf4ff', border: '#7c3aed', text: '#7c3aed', icon: '🚧' },
+                '기타':      { bg: '#f1f5f9', border: '#64748b', text: '#475569', icon: '📝' },
+            };
+            const reportsHtml = dayReports.map(r => {
+                const c = REASON_COLOR[r.reason] || REASON_COLOR['기타'];
+                const time = new Date(r.reported_at).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                return `<div style="border:1.5px solid ${c.border};border-radius:8px;padding:10px;margin-bottom:8px;background:${c.bg};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <span style="font-weight:800;color:${c.text};">${c.icon} ${r.reason}</span>
+                        <span style="font-size:11px;color:#94a3b8;">의뢰서 ${r.order_num}번 · ${r.tech_name} · ${time}</span>
+                    </div>
+                    ${r.memo ? `<div style="font-size:13px;color:#1e293b;background:white;border-radius:6px;padding:6px 8px;border:1px solid #e2e8f0;">${r.memo}</div>` : ''}
+                </div>`;
+            }).join('');
+
+            document.getElementById('historyContent').innerHTML += `
+                <div style="margin-top:16px;">
+                    <div style="font-size:13px;font-weight:800;color:#dc2626;margin-bottom:8px;">⚠️ 미완료 사유 (${dayReports.length}건)</div>
+                    ${reportsHtml}
+                </div>`;
+        }
+
+        // 30일 지난 데이터 자동 삭제 (DB + Storage 사진)
+        const sevenDaysAgo = new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
+        const { data: oldOrders } = await sb.from('orders')
+            .select('id, photo_url')
+            .eq('company_id', currentUser.company_id)
+            .lt('job_date', sevenDaysAgo);
+        if (oldOrders && oldOrders.length > 0) {
+            const oldIds = oldOrders.map(o => o.id);
+
+            // Storage 사진 삭제 (inspection-photos 버킷)
+            const photoFiles = oldOrders
+                .filter(o => o.photo_url)
+                .map(o => {
+                    const url = o.photo_url;
+                    const bucketPath = url.split('/inspection-photos/')[1];
+                    return bucketPath ? decodeURIComponent(bucketPath.split('?')[0]) : null;
+                })
+                .filter(Boolean);
+            if (photoFiles.length > 0) {
+                await sb.storage.from('inspection-photos').remove(photoFiles);
+            }
+
+            // DB 삭제
+            await sb.from('inspections').delete().in('order_id', oldIds);
+            await sb.from('order_reports').delete().in('order_id', oldIds);
+            await sb.from('orders').delete().eq('company_id', currentUser.company_id).lt('job_date', sevenDaysAgo);
+        }
+    }
+
+    // 기사 목록
+    async function loadTechList() {
+        const { data: techs } = await sb.from('users').select('*').eq('company_id', currentUser.company_id).eq('role', 'tech');
+        document.getElementById('techList').innerHTML = (techs || []).map(t => `
+            <div class="tech-row">
+                <div>
+                    <div style="font-weight:700;">👷 ${t.name}</div>
+                </div>
+                <button onclick="deleteTech('${t.id}','${t.name}')" style="padding:6px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">삭제</button>
+            </div>
+        `).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;">기사님이 없습니다.</div>';
+    }
+
+    async function addTech() {
+        const name = document.getElementById('newTechName').value.trim();
+        const pwd = document.getElementById('newTechPwd').value.trim();
+        if (!name || !pwd) { alert('이름과 비밀번호를 입력해주세요.'); return; }
+
+        const { error } = await sb.from('users').insert({
+            company_id: currentUser.company_id, name, password: pwd, role: 'tech'
+        });
+
+        if (error) { document.getElementById('addTechStatus').textContent = '❌ 오류: ' + error.message; return; }
+        document.getElementById('addTechStatus').innerHTML = `✅ ${name} 기사님 추가 완료`;
+        document.getElementById('newTechName').value = '';
+        document.getElementById('newTechPwd').value = '';
+        loadTechList();
+    }
+
+    async function deleteTech(id, name) {
+        if (!confirm(`${name} 기사님을 삭제할까요?`)) return;
+        await sb.from('users').delete().eq('id', id);
+        loadTechList();
+    }
+
+    // ════════════════════════════════
+    // 최고관리자 화면
+    // ════════════════════════════════
+    function superTab(tab) {
+        document.querySelectorAll('#superScreen .tab-btn').forEach(b => b.classList.remove('on'));
+        event.target.classList.add('on');
+        document.getElementById('superCompanies').style.display = tab === 'companies' ? 'block' : 'none';
+        document.getElementById('superOverview').style.display  = tab === 'overview'  ? 'block' : 'none';
+        document.getElementById('superTerms').style.display     = tab === 'terms'     ? 'block' : 'none';
+        if (tab === 'companies') loadSuperCompanies();
+        if (tab === 'overview')  loadSuperOverview();
+        if (tab === 'terms')     loadSuperTerms();
+    }
+
+    async function loadSuperCompanies() {
+        const { data: companies } = await sb.from('companies').select('*, users(*)').neq('id', '00000000-0000-0000-0000-000000000001');
+        document.getElementById('companyList').innerHTML = (companies || []).map(c => {
+            const admin = c.users?.find(u => u.role === 'admin');
+            const techCount = c.users?.filter(u => u.role === 'tech').length || 0;
+            return `<div class="company-card">
+                <div class="company-name">🏢 ${c.name}</div>
+                <div style="font-size:13px;color:#475569;">관리자: ${admin?.name || '없음'} · 기사 ${techCount}명</div>
+                <button onclick="deleteCompany('${c.id}','${c.name}')" style="margin-top:10px;padding:6px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">회사 삭제</button>
+            </div>`;
+        }).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;">등록된 회사가 없습니다.</div>';
+    }
+
+    async function addCompany() {
+        const name = document.getElementById('newCompanyName').value.trim();
+        const adminName = document.getElementById('newAdminName').value.trim();
+        const adminPwd = document.getElementById('newAdminPwd').value.trim();
+        if (!name || !adminName || !adminPwd) { alert('모두 입력해주세요.'); return; }
+
+        const { data: company, error: cErr } = await sb.from('companies').insert({ name }).select().single();
+        if (cErr) { document.getElementById('addCompanyStatus').textContent = '❌ ' + cErr.message; return; }
+
+        const { error: uErr } = await sb.from('users').insert({
+            company_id: company.id, name: adminName, password: adminPwd, role: 'admin'
+        });
+        if (uErr) { document.getElementById('addCompanyStatus').textContent = '❌ ' + uErr.message; return; }
+
+        document.getElementById('addCompanyStatus').innerHTML = `✅ ${name} 추가 완료`;
+        document.getElementById('newCompanyName').value = '';
+        document.getElementById('newAdminName').value = '';
+        document.getElementById('newAdminPwd').value = '';
+        loadSuperCompanies();
+    }
+
+    async function deleteCompany(id, name) {
+        if (!confirm(`${name} 회사를 삭제할까요? 모든 데이터가 삭제됩니다.`)) return;
+        await sb.from('companies').delete().eq('id', id);
+        loadSuperCompanies();
+    }
+
+    // 전체 이용약관 동의 내역 조회 (최고관리자 전용)
+    let allTermsRecords = [];
+    async function loadSuperTerms() {
+        const el = document.getElementById('superTermsContent');
+        el.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">불러오는 중...</div>';
+
+        const { data: logs, error } = await sb.from('terms_log')
+            .select('*')
+            .order('agreed_at', { ascending: false });
+
+        if (error || !logs?.length) {
+            el.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:40px;">동의 내역이 없습니다.</div>';
+            return;
+        }
+
+        allTermsRecords = logs;
+        renderTermsRecords(logs);
+    }
+
+    function renderTermsRecords(logs) {
+        const el = document.getElementById('superTermsContent');
+        const ROLE_LABEL = { admin: '관리자', tech: '기사' };
+        const ROLE_COLOR = { admin: 'badge-blue', tech: 'badge-green' };
+
+        // 회사별 집계
+        const byCompany = {};
+        logs.forEach(l => { byCompany[l.company_name] = (byCompany[l.company_name] || 0) + 1; });
+        const summaryHtml = Object.entries(byCompany).map(([name, cnt]) =>
+            `<div style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
+                background:#eff6ff;border:1.5px solid #2563eb;color:#1d4ed8;margin:0 4px 6px 0;">
+                🏢 ${name} ${cnt}명</div>`
+        ).join('');
+
+        const listHtml = logs.map(l => {
+            const date = new Date(l.agreed_at).toLocaleString('ko-KR', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+            return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px;background:white;
+                display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <span style="font-weight:800;font-size:14px;color:#1e293b;">${l.user_name}</span>
+                    <span class="badge ${ROLE_COLOR[l.user_role] || 'badge-gray'}" style="margin-left:6px;">
+                        ${ROLE_LABEL[l.user_role] || l.user_role}
+                    </span>
+                    <div style="font-size:12px;color:#64748b;margin-top:3px;">🏢 ${l.company_name}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:11px;color:#94a3b8;">${date}</div>
+                    <div style="font-size:11px;color:#16a34a;font-weight:600;margin-top:2px;">✅ 동의 완료</div>
+                </div>
+            </div>`;
+        }).join('');
+
+        el.innerHTML = `
+            <div style="margin-bottom:12px;">
+                <span style="font-size:12px;color:#64748b;">총 ${logs.length}명 동의</span>
+                <div style="margin-top:6px;">${summaryHtml}</div>
+            </div>
+            ${listHtml}
+        `;
+    }
+
+    function filterTermsRecords() {
+        const keyword = document.getElementById('termsSearchInput').value.trim().toLowerCase();
+        const filtered = keyword
+            ? allTermsRecords.filter(l =>
+                l.user_name.toLowerCase().includes(keyword) ||
+                l.company_name.toLowerCase().includes(keyword))
+            : allTermsRecords;
+        renderTermsRecords(filtered);
+    }
+
+    async function loadSuperOverview() {
+        const { data: orders } = await sb.from('orders').select('*, companies(name)');
+        const { data: companies } = await sb.from('companies').select('name, id').neq('id', '00000000-0000-0000-0000-000000000001');
+
+        const byCompany = {};
+        (orders || []).forEach(o => {
+            const cName = o.companies?.name || '알 수 없음';
+            if (!byCompany[cName]) byCompany[cName] = { total: 0, done: 0 };
+            byCompany[cName].total++;
+            if (o.status === 'done') byCompany[cName].done++;
+        });
+
+        document.getElementById('superOverviewContent').innerHTML = Object.entries(byCompany).map(([name, s]) => {
+            const pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+            return `<div class="company-card">
+                <div class="company-name">🏢 ${name}</div>
+                <div style="font-size:13px;color:#475569;">${s.done}/${s.total} 완료 (${pct}%)</div>
+                <div class="progress-bar" style="margin-top:8px;">
+                    <div class="progress-fill ${pct===100?'done':''}" style="width:${pct}%"></div>
+                </div>
+            </div>`;
+        }).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;">데이터 없음</div>';
+    }
+</script>
+<!-- 푸터 -->
+<div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 20px;text-align:center;">
+    <p style="font-size:11px;color:#94a3b8;line-height:1.7;margin:0;">
+        © 2026 LoadCheck&nbsp;&nbsp;|&nbsp;&nbsp;본 시스템의 다중 사용자 권한 아키텍처 및 AI 모델명 매칭 로직은<br>
+        LoadCheck 고유의 창작물로서 법적인 보호를 받습니다.<br>
+        무단 도용 및 복제 시 관련 법령에 따라 처벌받을 수 있습니다.
+    </p>
+</div>
+</body>
+</html>
