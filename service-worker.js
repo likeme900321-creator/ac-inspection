@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loadcheck-v2026063001'; // 오늘 날짜로 변경
+const CACHE_NAME = 'loadcheck-v2026063002'; // 오늘 날짜로 변경
 
 const STATIC_ASSETS = [
   './',
